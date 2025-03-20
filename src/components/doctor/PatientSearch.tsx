@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { ButtonCustom } from '@/components/ui/button-custom';
 import { Search, UserCircle } from 'lucide-react';
-import { searchPatientsByName, searchPatientsByBlockchainId } from '@/lib/dummy-data';
+import { searchPatientsByName, searchPatientsByBlockchainId, Patient } from '@/lib/dummy-data';
 
 interface PatientSearchProps {
   placeholder?: string;
@@ -16,7 +16,7 @@ const PatientSearch: React.FC<PatientSearchProps> = ({
   onlyRecent = false
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<Patient[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const navigate = useNavigate();
 
@@ -24,8 +24,8 @@ const PatientSearch: React.FC<PatientSearchProps> = ({
     if (searchTerm.trim().length > 0) {
       // Check if search term might be a blockchain ID (starts with 0x)
       if (searchTerm.trim().startsWith('0x')) {
-        const results = searchPatientsByBlockchainId(searchTerm.trim());
-        setSearchResults(results.length ? [results] : []);
+        const result = searchPatientsByBlockchainId(searchTerm.trim());
+        setSearchResults(result ? [result] : []);
       } else {
         const results = searchPatientsByName(searchTerm);
         setSearchResults(results);

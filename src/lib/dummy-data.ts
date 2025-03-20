@@ -306,7 +306,7 @@ export function getRecentPatients(doctorId: string, limit = 5) {
     });
 }
 
-export function searchPatientsByName(searchTerm: string) {
+export function searchPatientsByName(searchTerm: string): Patient[] {
   if (!searchTerm.trim()) return [];
   
   const lowerSearchTerm = searchTerm.toLowerCase();
@@ -315,8 +315,8 @@ export function searchPatientsByName(searchTerm: string) {
   );
 }
 
-export function searchPatientsByBlockchainId(blockchainId: string) {
-  if (!blockchainId.trim()) return [];
+export function searchPatientsByBlockchainId(blockchainId: string): Patient | undefined {
+  if (!blockchainId.trim()) return undefined;
   
   return patients.find(patient => 
     patient.blockchainId && patient.blockchainId.toLowerCase().includes(blockchainId.toLowerCase())
