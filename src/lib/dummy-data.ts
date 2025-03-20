@@ -1,4 +1,3 @@
-
 import { faker } from '@faker-js/faker';
 
 export interface Doctor {
@@ -22,6 +21,7 @@ export interface Patient {
   chronicConditions?: string[];
   picture?: string | null;
   notes?: { date: string; doctor: string; content: string }[];
+  blockchainId?: string; // Unique blockchain identifier for web3 integration
 }
 
 export interface Appointment {
@@ -54,6 +54,7 @@ export interface Message {
   timestamp: Date;
   content: string;
   isRead: boolean;
+  senderName?: string; // Name for display
 }
 
 export interface Prescription {
@@ -99,6 +100,13 @@ export const doctors: Doctor[] = Array.from({ length: 5 }, (_, i) => ({
 // Blood type options since faker.person.bloodType() doesn't exist
 const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
+// Generate blockchain-like addresses for patients
+const generateBlockchainId = () => {
+  return '0x' + Array.from({ length: 40 })
+    .map(() => faker.number.hex({ min: 0, max: 15 }))
+    .join('');
+};
+
 export const patients: Patient[] = Array.from({ length: 20 }, (_, i) => ({
   id: `p${i + 1}`,
   name: faker.person.fullName(),
@@ -125,6 +133,7 @@ export const patients: Patient[] = Array.from({ length: 20 }, (_, i) => ({
     doctor: faker.person.fullName(),
     content: faker.lorem.sentence(),
   })),
+  blockchainId: generateBlockchainId(), // Add unique blockchain ID
 }));
 
 export const appointments: Appointment[] = Array.from({ length: 30 }, (_, i) => {
@@ -167,15 +176,20 @@ export const inventoryItems: InventoryItem[] = Array.from({ length: 10 }, (_, i)
 }));
 
 export const messages: Message[] = Array.from({ length: 20 }, (_, i) => {
-  const sender = patients[i % patients.length];
-  const receiver = doctors[i % doctors.length];
+  const sender = i % 2 === 0 
+    ? patients[i % patients.length]
+    : doctors[i % doctors.length];
+  const receiver = i % 2 === 0 
+    ? doctors[i % doctors.length]
+    : patients[i % patients.length];
   return {
     id: `m${i + 1}`,
     senderId: sender.id,
     receiverId: receiver.id,
     timestamp: faker.date.recent(),
-    content: faker.lorem.sentence(),
+    content: faker.lorem.paragraph(2),
     isRead: faker.datatype.boolean(),
+    senderName: sender.name,
   };
 });
 
@@ -299,4 +313,27 @@ export function searchPatientsByName(searchTerm: string) {
   return patients.filter(patient => 
     patient.name.toLowerCase().includes(lowerSearchTerm)
   );
+}
+
+// Add new helper functions for messaging
+export function getPatientMessages(patientId: string) {
+  return messages.filter(
+    message => message.senderId === patientId || message.receiverId === patientId
+  ).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+}
+
+export function getDoctorMessages(doctorId: string) {
+  return messages.filter(
+    message => message.senderId === doctorId || message.receiverId === doctorId
+  ).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+}
+
+// Find doctor by ID
+export function findDoctorById(doctorId: string) {
+  return doctors.find(doctor => doctor.id === doctorId);
+}
+
+// Get patient by blockchain ID
+export function findPatientByBlockchainId(blockchainId: string) {
+  return patients.find(patient => patient.blockchainId === blockchainId);
 }

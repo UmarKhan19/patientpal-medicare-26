@@ -3,15 +3,22 @@ import { useState } from "react";
 import Dashboard from "./Dashboard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, User, FileText, Pill, ClipboardCheck, MessageSquare } from "lucide-react";
+import { 
+  Calendar, User, FileText, Pill, ClipboardCheck, MessageSquare, 
+  Plus, Clock, Check, X, Copy, TestTube 
+} from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDate } from "@/lib/utils";
+import { toast } from "@/components/ui/use-toast";
 import { 
   getPatientAppointments, 
   getPatientPrescriptions, 
   getPatientMedicationReminders,
-  getUnreadMessageCount
+  getUnreadMessageCount,
+  getPatientMessages,
+  getPatientTests,
+  findPatientById
 } from "@/lib/dummy-data";
 
 const PatientDashboard = () => {
@@ -19,22 +26,59 @@ const PatientDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
 
   // Get data from our dummy data source
+  const patientData = findPatientById(user?.id || "p1");
   const appointments = getPatientAppointments(user?.id || "p1");
   const prescriptions = getPatientPrescriptions(user?.id || "p1");
   const medicationReminders = getPatientMedicationReminders(user?.id || "p1");
+  const testResults = getPatientTests(user?.id || "p1");
   const unreadMessages = getUnreadMessageCount(user?.id || "p1");
+  const messages = getPatientMessages(user?.id || "p1").slice(0, 5);
 
   // Get next appointment (first upcoming one)
-  const upcomingAppointments = appointments.filter(a => new Date(a.date) > new Date())
+  const upcomingAppointments = appointments
+    .filter(a => new Date(a.date) > new Date())
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   const nextAppointment = upcomingAppointments.length > 0 ? upcomingAppointments[0] : null;
 
+  // Copy blockchain ID to clipboard
+  const copyBlockchainId = () => {
+    if (patientData?.blockchainId) {
+      navigator.clipboard.writeText(patientData.blockchainId);
+      toast({
+        title: "Blockchain ID copied",
+        description: "Your unique blockchain ID has been copied to clipboard",
+      });
+    }
+  };
+
   return (
     <Dashboard requiredRole="patient">
-      <div className="mb-8 animate-fade-in">
+      <div className="mb-4 animate-fade-in">
         <h1 className="text-3xl font-bold mb-2">Welcome, {user?.name}</h1>
         <p className="text-slate-600">Manage your healthcare journey from your dashboard</p>
       </div>
+
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <p className="text-sm text-slate-600 mb-1">Your Unique Blockchain ID:</p>
+              <div className="flex items-center">
+                <code className="bg-slate-100 p-2 rounded font-mono text-sm">
+                  {patientData?.blockchainId || "0x0000000000000000000000000000000000000000"}
+                </code>
+                <ButtonCustom variant="ghost" size="sm" onClick={copyBlockchainId}>
+                  <Copy className="h-4 w-4" />
+                </ButtonCustom>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                This ID allows doctors to access your medical data securely on the blockchain
+              </p>
+            </div>
+            <ButtonCustom>Share Medical Data</ButtonCustom>
+          </div>
+        </CardContent>
+      </Card>
 
       <Tabs defaultValue="overview" className="space-y-8" onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-5 h-auto p-1 bg-slate-100 rounded-lg">
@@ -57,10 +101,10 @@ const PatientDashboard = () => {
             Prescriptions
           </TabsTrigger>
           <TabsTrigger 
-            value="reminders" 
-            className={`py-3 ${activeTab === "reminders" ? "bg-white shadow-sm" : ""}`}
+            value="tests" 
+            className={`py-3 ${activeTab === "tests" ? "bg-white shadow-sm" : ""}`}
           >
-            Reminders
+            Test Results
           </TabsTrigger>
           <TabsTrigger 
             value="messages" 
@@ -216,12 +260,55 @@ const PatientDashboard = () => {
         <TabsContent value="appointments" className="animate-fade-in">
           <Card>
             <CardHeader>
-              <CardTitle>Appointment Booking</CardTitle>
-              <CardDescription>Schedule appointments with your healthcare providers</CardDescription>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <CardTitle>My Appointments</CardTitle>
+                  <CardDescription>View and manage your scheduled appointments</CardDescription>
+                </div>
+                <ButtonCustom>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Request Appointment
+                </ButtonCustom>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="flex justify-center items-center h-64 text-slate-400">
-                <p>Appointment booking interface will be available here</p>
+              <div className="space-y-4">
+                {appointments.map(appointment => (
+                  <div key={appointment.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                    <div className="flex items-center space-x-4 mb-3 sm:mb-0">
+                      <div className={`p-2 rounded-full ${
+                        appointment.status === "Scheduled" ? "bg-blue-100 text-blue-600" :
+                        appointment.status === "Completed" ? "bg-green-100 text-green-600" :
+                        "bg-orange-100 text-orange-600"
+                      }`}>
+                        {appointment.status === "Scheduled" ? <Clock className="h-5 w-5" /> :
+                         appointment.status === "Completed" ? <Check className="h-5 w-5" /> :
+                         <X className="h-5 w-5" />}
+                      </div>
+                      <div>
+                        <h4 className="font-medium">Dr. {appointment.doctor}</h4>
+                        <p className="text-sm text-slate-600">{appointment.specialty}</p>
+                        <div className="flex items-center text-xs text-slate-500 mt-1">
+                          <Calendar className="h-3 w-3 mr-1" /> 
+                          {formatDate(appointment.date)} at {appointment.time}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <ButtonCustom size="sm" variant="outline">Details</ButtonCustom>
+                      {appointment.status === "Scheduled" && (
+                        <ButtonCustom size="sm" variant="outline">Cancel</ButtonCustom>
+                      )}
+                    </div>
+                  </div>
+                ))}
+
+                {appointments.length === 0 && (
+                  <div className="flex flex-col items-center justify-center p-8 text-slate-400">
+                    <Calendar className="h-12 w-12 mb-2 text-slate-300" />
+                    <p>No appointments found</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -230,26 +317,77 @@ const PatientDashboard = () => {
         <TabsContent value="prescriptions" className="animate-fade-in">
           <Card>
             <CardHeader>
-              <CardTitle>Prescription History</CardTitle>
+              <CardTitle>My Prescriptions</CardTitle>
               <CardDescription>View your current and past prescriptions</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex justify-center items-center h-64 text-slate-400">
-                <p>Prescription history interface will be available here</p>
+              <div className="space-y-4">
+                {prescriptions.map((prescription) => (
+                  <div key={prescription.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                    <div className="mb-3 sm:mb-0">
+                      <h4 className="font-medium">{prescription.medication}</h4>
+                      <p className="text-sm text-slate-600">{prescription.dosage} - {prescription.instructions}</p>
+                      <div className="flex flex-col md:flex-row md:space-x-3 text-xs text-slate-500 mt-1">
+                        <span>Prescribed by Dr. {prescription.doctor}</span>
+                        <span>Issued: {formatDate(prescription.issued)}</span>
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <ButtonCustom size="sm" variant="outline">Refill</ButtonCustom>
+                      <ButtonCustom size="sm" variant="outline">Details</ButtonCustom>
+                    </div>
+                  </div>
+                ))}
+
+                {prescriptions.length === 0 && (
+                  <div className="flex flex-col items-center justify-center p-8 text-slate-400">
+                    <FileText className="h-12 w-12 mb-2 text-slate-300" />
+                    <p>No prescriptions found</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="reminders" className="animate-fade-in">
+        <TabsContent value="tests" className="animate-fade-in">
           <Card>
             <CardHeader>
-              <CardTitle>Medication Reminders</CardTitle>
-              <CardDescription>Set and manage your medication schedule</CardDescription>
+              <CardTitle>Test Results</CardTitle>
+              <CardDescription>Access your medical test results</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex justify-center items-center h-64 text-slate-400">
-                <p>Medication reminder interface will be available here</p>
+              <div className="space-y-4">
+                {testResults.map((test) => (
+                  <div key={test.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                    <div className="flex items-center space-x-4 mb-3 sm:mb-0">
+                      <div className="p-2 rounded-full bg-primary/10">
+                        <TestTube className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium">{test.name}</h4>
+                        <p className="text-sm text-slate-600">Lab: {test.lab}</p>
+                        <div className="flex items-center text-xs text-slate-500 mt-1">
+                          <Calendar className="h-3 w-3 mr-1" /> 
+                          {formatDate(test.date)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <div className="bg-primary/10 px-3 py-1 rounded-full text-primary font-medium mb-2">
+                        Result: {test.result}
+                      </div>
+                      <ButtonCustom size="sm" variant="outline">View Details</ButtonCustom>
+                    </div>
+                  </div>
+                ))}
+
+                {testResults.length === 0 && (
+                  <div className="flex flex-col items-center justify-center p-8 text-slate-400">
+                    <TestTube className="h-12 w-12 mb-2 text-slate-300" />
+                    <p>No test results found</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -258,12 +396,43 @@ const PatientDashboard = () => {
         <TabsContent value="messages" className="animate-fade-in">
           <Card>
             <CardHeader>
-              <CardTitle>Messages</CardTitle>
-              <CardDescription>Communicate with your healthcare providers</CardDescription>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle>Messages</CardTitle>
+                  <CardDescription>Communicate with your healthcare providers</CardDescription>
+                </div>
+                <ButtonCustom>
+                  <Plus className="mr-2 h-4 w-4" />
+                  New Message
+                </ButtonCustom>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="flex justify-center items-center h-64 text-slate-400">
-                <p>Messaging interface will be available here</p>
+              <div className="space-y-4">
+                {messages.map((message) => (
+                  <div key={message.id} className={`p-4 rounded-lg ${
+                    message.senderId === (user?.id || "p1") 
+                      ? "bg-primary/10 ml-12" 
+                      : "bg-slate-50 mr-12 border border-slate-200"
+                  }`}>
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="font-medium">
+                        {message.senderId === (user?.id || "p1") ? "You" : message.senderName}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {new Date(message.timestamp).toLocaleString()}
+                      </p>
+                    </div>
+                    <p className="text-sm">{message.content}</p>
+                  </div>
+                ))}
+
+                {messages.length === 0 && (
+                  <div className="flex flex-col items-center justify-center p-8 text-slate-400">
+                    <MessageSquare className="h-12 w-12 mb-2 text-slate-300" />
+                    <p>No messages found</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
