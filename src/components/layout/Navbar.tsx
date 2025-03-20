@@ -28,9 +28,6 @@ const Navbar = () => {
 
   const navLinks = [
     { title: "Home", path: "/" },
-    { title: "Features", path: "/#features" },
-    { title: "About", path: "/#about" },
-    { title: "Contact", path: "/#contact" },
   ];
 
   return (
@@ -76,6 +73,16 @@ const Navbar = () => {
                 <Link to={user.role === 'doctor' ? "/doctor" : "/patient"}>
                   <UserCircle size={16} />
                   <span>Dashboard</span>
+                </Link>
+              </ButtonCustom>
+              <ButtonCustom
+                variant="glass"
+                size="sm"
+                className="flex items-center space-x-2"
+                asChild
+              >
+                <Link to="/profile">
+                  <span>Profile</span>
                 </Link>
               </ButtonCustom>
               <ButtonCustom
@@ -145,6 +152,15 @@ const Navbar = () => {
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Dashboard
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/profile"
+                    className="block py-2 text-sm font-medium text-primary"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Profile
                   </Link>
                 </li>
                 <li>
