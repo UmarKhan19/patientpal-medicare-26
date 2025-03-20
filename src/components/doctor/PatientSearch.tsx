@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { ButtonCustom } from '@/components/ui/button-custom';
 import { Search, UserCircle } from 'lucide-react';
-import { searchPatientsByName } from '@/lib/dummy-data';
+import { searchPatientsByName, searchPatientsByBlockchainId } from '@/lib/dummy-data';
 
 interface PatientSearchProps {
   placeholder?: string;
@@ -22,8 +22,14 @@ const PatientSearch: React.FC<PatientSearchProps> = ({
 
   useEffect(() => {
     if (searchTerm.trim().length > 0) {
-      const results = searchPatientsByName(searchTerm);
-      setSearchResults(results);
+      // Check if search term might be a blockchain ID (starts with 0x)
+      if (searchTerm.trim().startsWith('0x')) {
+        const results = searchPatientsByBlockchainId(searchTerm.trim());
+        setSearchResults(results.length ? [results] : []);
+      } else {
+        const results = searchPatientsByName(searchTerm);
+        setSearchResults(results);
+      }
     } else {
       setSearchResults([]);
     }
@@ -83,7 +89,12 @@ const PatientSearch: React.FC<PatientSearchProps> = ({
               )}
               <div>
                 <p className="font-medium">{patient.name}</p>
-                <p className="text-xs text-slate-500">ID: {patient.id}</p>
+                <div className="flex flex-col">
+                  <p className="text-xs text-slate-500">ID: {patient.id}</p>
+                  {patient.blockchainId && (
+                    <p className="text-xs text-slate-500 font-mono">Blockchain ID: {patient.blockchainId.substring(0, 10)}...</p>
+                  )}
+                </div>
               </div>
             </div>
           ))}

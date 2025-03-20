@@ -315,7 +315,14 @@ export function searchPatientsByName(searchTerm: string) {
   );
 }
 
-// Add new helper functions for messaging
+export function searchPatientsByBlockchainId(blockchainId: string) {
+  if (!blockchainId.trim()) return [];
+  
+  return patients.find(patient => 
+    patient.blockchainId && patient.blockchainId.toLowerCase().includes(blockchainId.toLowerCase())
+  );
+}
+
 export function getPatientMessages(patientId: string) {
   return messages.filter(
     message => message.senderId === patientId || message.receiverId === patientId
