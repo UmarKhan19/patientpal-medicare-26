@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Dashboard from "./Dashboard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -508,54 +507,45 @@ const PatientDashboard = () => {
                         <h3 className="text-lg font-medium">{time}</h3>
                       </div>
                       
-                      <div className="bg-slate-50 rounded-lg divide-y">
-                        {groupedMedications[time].map((medication) => (
-                          <div 
-                            key={medication.id} 
-                            className={`flex items-center justify-between p-4 ${
-                              medication.taken ? "bg-green-50" : ""
-                            }`}
-                          >
-                            <div className="flex items-center space-x-3">
-                              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                <Pill className="h-6 w-6 text-primary" />
-                              </div>
-                              <div>
-                                <p className="font-medium">{medication.medication}</p>
-                                <p className="text-sm text-slate-600">Take with food</p>
-                              </div>
+                      {groupedMedications[time].map((medication) => (
+                        <div 
+                          key={medication.id} 
+                          className={`flex items-center justify-between p-4 rounded-lg ${
+                            medication.taken ? "bg-[#F2FCE2]" : "bg-[#F9F9F9]"
+                          }`}
+                        >
+                          <div className="flex items-center space-x-4">
+                            <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                              <Pill className="h-6 w-6 text-primary" />
                             </div>
-                            
-                            <div className="flex items-center space-x-4">
-                              <div className="text-sm text-slate-500">
-                                {medication.taken ? (
-                                  <span className="flex items-center text-green-600">
-                                    <CheckCircle2 className="h-4 w-4 mr-1" /> Taken
-                                  </span>
-                                ) : (
-                                  <span>Not taken yet</span>
-                                )}
-                              </div>
-                              
-                              <div className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={`medication-${medication.id}`}
-                                  checked={medication.taken}
-                                  onCheckedChange={(checked) => 
-                                    handleMedicationTaken(medication.id, checked === true)
-                                  }
-                                />
-                                <label
-                                  htmlFor={`medication-${medication.id}`}
-                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                >
-                                  Mark as taken
-                                </label>
-                              </div>
+                            <div>
+                              <p className="font-medium text-lg">{medication.medication}</p>
+                              <p className="text-slate-600">Take with food</p>
                             </div>
                           </div>
-                        ))}
-                      </div>
+                          
+                          <div className="flex items-center space-x-4">
+                            {medication.taken && (
+                              <div className="flex items-center text-green-600">
+                                <CheckCircle2 className="h-5 w-5 mr-2" />
+                                <span>Taken</span>
+                              </div>
+                            )}
+                            
+                            <button
+                              onClick={() => handleMedicationTaken(medication.id, !medication.taken)}
+                              className={`flex items-center gap-2 py-2 px-4 rounded-full ${
+                                medication.taken 
+                                  ? "bg-white text-slate-700 border border-slate-200" 
+                                  : "bg-primary text-white"
+                              }`}
+                            >
+                              <Check className="h-4 w-4" />
+                              Mark as taken
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   ))
                 ) : (
@@ -635,3 +625,4 @@ const PatientDashboard = () => {
 };
 
 export default PatientDashboard;
+
