@@ -1,3 +1,4 @@
+
 import { faker } from '@faker-js/faker';
 
 export interface Doctor {
@@ -34,6 +35,7 @@ export interface Appointment {
   notes?: string;
   patient?: string; // Patient name for display
   doctor?: string; // Doctor name for display
+  specialty?: string; // Doctor specialty for display
 }
 
 export interface InventoryItem {
@@ -62,6 +64,7 @@ export interface Prescription {
   dosage: string;
   instructions: string;
   date: Date;
+  issued: Date; // Added issued date
   doctor: string;
 }
 
@@ -73,6 +76,14 @@ export interface TestResult {
   lab: string;
   result: string;
   notes?: string;
+}
+
+export interface MedicationReminder {
+  id: string;
+  patientId: string;
+  medication: string;
+  time: string;
+  taken: boolean;
 }
 
 // Generate dummy data
@@ -135,6 +146,7 @@ export const appointments: Appointment[] = Array.from({ length: 30 }, (_, i) => 
     notes: faker.lorem.sentence(),
     patient: patient.name,
     doctor: doctor.name,
+    specialty: doctor.specialty,
   };
 });
 
@@ -175,6 +187,7 @@ export const prescriptions: Prescription[] = Array.from({ length: 20 }, (_, i) =
     dosage: `${faker.number.int({ min: 1, max: 5 })} pills`,
     instructions: faker.lorem.sentence(),
     date: faker.date.past(),
+    issued: faker.date.past(), // Added issued date
     doctor: doctor.name,
   };
 });
@@ -189,6 +202,18 @@ export const testResults: TestResult[] = Array.from({ length: 15 }, (_, i) => {
     lab: faker.company.name(),
     result: faker.number.float({ min: 0, max: 100 }).toString(),
     notes: faker.lorem.sentence(),
+  };
+});
+
+// Generate medication reminders
+export const medicationReminders: MedicationReminder[] = Array.from({ length: 12 }, (_, i) => {
+  const patient = patients[i % patients.length];
+  return {
+    id: `mr${i + 1}`,
+    patientId: patient.id,
+    medication: faker.commerce.productName(),
+    time: `${faker.number.int({ min: 6, max: 22 })}:${faker.helpers.arrayElement(['00', '30'])}`,
+    taken: faker.datatype.boolean(),
   };
 });
 
@@ -237,6 +262,10 @@ export function getPatientPrescriptions(patientId: string) {
 
 export function getPatientTests(patientId: string) {
   return testResults.filter(test => test.patientId === patientId);
+}
+
+export function getPatientMedicationReminders(patientId: string) {
+  return medicationReminders.filter(reminder => reminder.patientId === patientId);
 }
 
 export function getRecentPatients(doctorId: string, limit = 5) {

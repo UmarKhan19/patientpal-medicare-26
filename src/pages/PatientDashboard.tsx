@@ -8,7 +8,7 @@ import { ButtonCustom } from "@/components/ui/button-custom";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDate } from "@/lib/utils";
 import { 
-  patientAppointments, 
+  getPatientAppointments, 
   getPatientPrescriptions, 
   getPatientMedicationReminders,
   getUnreadMessageCount
@@ -19,7 +19,7 @@ const PatientDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
 
   // Get data from our dummy data source
-  const appointments = patientAppointments;
+  const appointments = getPatientAppointments(user?.id || "p1");
   const prescriptions = getPatientPrescriptions(user?.id || "p1");
   const medicationReminders = getPatientMedicationReminders(user?.id || "p1");
   const unreadMessages = getUnreadMessageCount(user?.id || "p1");
