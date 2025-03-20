@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
+import { doctors, patients } from "@/lib/dummy-data";
 
 // Define user type
 export type UserRole = "doctor" | "patient";
@@ -11,6 +12,7 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  picture?: string | null;
 }
 
 // Define context type
@@ -25,22 +27,24 @@ interface AuthContextType {
 // Create context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Sample user data for demonstration
-const SAMPLE_USERS = [
-  {
-    id: "d1",
-    name: "Dr. John Smith",
-    email: "doctor@example.com",
-    password: "password",
+// Combine doctor and patient data for authentication
+const USERS = [
+  ...doctors.map(doctor => ({
+    id: doctor.id,
+    name: doctor.name,
+    email: doctor.email,
+    password: "password", // In a real app, this would be hashed
     role: "doctor" as UserRole,
-  },
-  {
-    id: "p1",
-    name: "Jane Doe",
-    email: "patient@example.com",
-    password: "password",
+    picture: doctor.picture
+  })),
+  ...patients.map(patient => ({
+    id: patient.id,
+    name: patient.name,
+    email: patient.email,
+    password: "password", // In a real app, this would be hashed
     role: "patient" as UserRole,
-  },
+    picture: patient.picture
+  }))
 ];
 
 // Provider component
@@ -73,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const foundUser = SAMPLE_USERS.find(u => u.email === email && u.password === password);
+      const foundUser = USERS.find(u => u.email === email && u.password === password);
       
       if (!foundUser) {
         throw new Error("Invalid email or password");
@@ -110,13 +114,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Check if email already exists
-      if (SAMPLE_USERS.some(u => u.email === email)) {
+      if (USERS.some(u => u.email === email)) {
         throw new Error("Email already in use");
       }
       
       // Create new user
       const newUser = {
-        id: `${role.charAt(0)}${SAMPLE_USERS.length + 1}`,
+        id: `${role.charAt(0)}${USERS.length + 1}`,
         name,
         email,
         role,

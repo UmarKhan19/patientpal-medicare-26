@@ -6,30 +6,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Users, ClipboardList, Package, MessageSquare, UserCircle } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatDate } from "@/lib/utils";
+import { formatDate, getStatusColor } from "@/lib/utils";
+import { 
+  getTodaysAppointments, 
+  getUpcomingAppointments, 
+  getRecentPatients, 
+  getLowInventoryItems,
+  getUnreadMessageCount
+} from "@/lib/dummy-data";
 
 const DoctorDashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Sample data for dashboard
-  const upcomingAppointments = [
-    { id: 1, patient: "Sarah Johnson", time: "09:30 AM", date: new Date(), type: "Check-up" },
-    { id: 2, patient: "Michael Brown", time: "11:00 AM", date: new Date(), type: "Follow-up" },
-    { id: 3, patient: "Emily Wilson", time: "02:15 PM", date: new Date(), type: "Consultation" },
-  ];
-
-  const recentPatients = [
-    { id: 1, name: "John Doe", age: 45, lastVisit: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) },
-    { id: 2, name: "Lisa Garcia", age: 32, lastVisit: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) },
-    { id: 3, name: "Robert Chen", age: 58, lastVisit: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
-  ];
-
-  const lowInventoryItems = [
-    { id: 1, name: "Amoxicillin 500mg", current: 15, threshold: 20 },
-    { id: 2, name: "Paracetamol 500mg", current: 8, threshold: 25 },
-    { id: 3, name: "Disposable Syringes", current: 12, threshold: 30 },
-  ];
+  // Get data from our dummy data source
+  const todaysAppointments = getTodaysAppointments(user?.id || "d1");
+  const upcomingAppointments = getUpcomingAppointments(user?.id || "d1", 5);
+  const recentPatients = getRecentPatients(user?.id || "d1", 5);
+  const lowInventoryItems = getLowInventoryItems("warning", 3);
+  const unreadMessages = getUnreadMessageCount(user?.id || "d1");
 
   return (
     <Dashboard requiredRole="doctor">
@@ -82,9 +77,12 @@ const DoctorDashboard = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold mb-2">{upcomingAppointments.length}</div>
+                <div className="text-3xl font-bold mb-2">{todaysAppointments.length}</div>
                 <p className="text-sm text-slate-600 mb-4">
-                  Next appointment at {upcomingAppointments[0]?.time}
+                  {todaysAppointments.length > 0 
+                    ? `Next appointment at ${todaysAppointments[0]?.time}`
+                    : "No appointments scheduled for today"
+                  }
                 </p>
                 <ButtonCustom variant="outline" size="sm" className="w-full">
                   View Schedule
@@ -112,18 +110,21 @@ const DoctorDashboard = () => {
 
             <Card className="card-hover">
               <CardHeader className="flex flex-row items-center space-x-4 pb-2">
-                <ClipboardList className="h-5 w-5 text-primary" />
+                <MessageSquare className="h-5 w-5 text-primary" />
                 <div>
-                  <CardTitle className="text-lg">Pending Reports</CardTitle>
+                  <CardTitle className="text-lg">Messages</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold mb-2">7</div>
+                <div className="text-3xl font-bold mb-2">{unreadMessages}</div>
                 <p className="text-sm text-slate-600 mb-4">
-                  2 require urgent attention
+                  {unreadMessages > 0 
+                    ? `${unreadMessages} unread message${unreadMessages > 1 ? 's' : ''}`
+                    : "No new messages"
+                  }
                 </p>
                 <ButtonCustom variant="outline" size="sm" className="w-full">
-                  Review Reports
+                  View Messages
                 </ButtonCustom>
               </CardContent>
             </Card>
@@ -136,7 +137,7 @@ const DoctorDashboard = () => {
                   <CardTitle>Upcoming Appointments</CardTitle>
                   <ButtonCustom variant="ghost" size="sm">View All</ButtonCustom>
                 </div>
-                <CardDescription>Your scheduled appointments for today</CardDescription>
+                <CardDescription>Your scheduled appointments</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -157,6 +158,12 @@ const DoctorDashboard = () => {
                       </div>
                     </div>
                   ))}
+                  
+                  {upcomingAppointments.length === 0 && (
+                    <div className="flex justify-center items-center py-8 text-slate-400">
+                      <p>No upcoming appointments</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -175,14 +182,20 @@ const DoctorDashboard = () => {
                     <div key={item.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                       <div>
                         <p className="font-medium">{item.name}</p>
-                        <p className="text-sm text-slate-600">Current: {item.current} / Threshold: {item.threshold}</p>
+                        <p className="text-sm text-slate-600">Current: {item.inStock} / Threshold: {item.threshold}</p>
                       </div>
                       <div className="flex items-center">
-                        <div className={`h-2.5 w-2.5 rounded-full ${item.current < item.threshold * 0.5 ? 'bg-red-500' : 'bg-amber-500'} mr-2`}></div>
+                        <div className={`h-2.5 w-2.5 rounded-full ${getStatusColor(item.reorderStatus)} mr-2`}></div>
                         <ButtonCustom variant="outline" size="sm">Restock</ButtonCustom>
                       </div>
                     </div>
                   ))}
+                  
+                  {lowInventoryItems.length === 0 && (
+                    <div className="flex justify-center items-center py-8 text-slate-400">
+                      <p>No low inventory items</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

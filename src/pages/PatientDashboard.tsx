@@ -7,41 +7,27 @@ import { Calendar, User, FileText, Pill, ClipboardCheck, MessageSquare } from "l
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDate } from "@/lib/utils";
+import { 
+  patientAppointments, 
+  getPatientPrescriptions, 
+  getPatientMedicationReminders,
+  getUnreadMessageCount
+} from "@/lib/dummy-data";
 
 const PatientDashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Sample data for dashboard
-  const upcomingAppointments = [
-    { id: 1, doctor: "Dr. Sarah Johnson", specialty: "Cardiologist", time: "02:30 PM", date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) },
-  ];
+  // Get data from our dummy data source
+  const appointments = patientAppointments;
+  const prescriptions = getPatientPrescriptions(user?.id || "p1");
+  const medicationReminders = getPatientMedicationReminders(user?.id || "p1");
+  const unreadMessages = getUnreadMessageCount(user?.id || "p1");
 
-  const prescriptions = [
-    { 
-      id: 1, 
-      medication: "Amoxicillin", 
-      dosage: "500mg", 
-      instructions: "Take one capsule three times a day", 
-      issued: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-      doctor: "Dr. Michael Brown"
-    },
-    { 
-      id: 2, 
-      medication: "Lisinopril", 
-      dosage: "10mg", 
-      instructions: "Take one tablet daily in the morning", 
-      issued: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-      doctor: "Dr. Sarah Johnson"
-    },
-  ];
-
-  const medicationReminders = [
-    { id: 1, medication: "Amoxicillin", time: "08:00 AM", taken: true },
-    { id: 2, medication: "Amoxicillin", time: "02:00 PM", taken: false },
-    { id: 3, medication: "Amoxicillin", time: "08:00 PM", taken: false },
-    { id: 4, medication: "Lisinopril", time: "09:00 AM", taken: true },
-  ];
+  // Get next appointment (first upcoming one)
+  const upcomingAppointments = appointments.filter(a => new Date(a.date) > new Date())
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const nextAppointment = upcomingAppointments.length > 0 ? upcomingAppointments[0] : null;
 
   return (
     <Dashboard requiredRole="patient">
@@ -94,12 +80,12 @@ const PatientDashboard = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                {upcomingAppointments.length > 0 ? (
+                {nextAppointment ? (
                   <>
-                    <div className="text-xl font-medium mb-1">{upcomingAppointments[0].doctor}</div>
-                    <p className="text-sm text-slate-600 mb-1">{upcomingAppointments[0].specialty}</p>
+                    <div className="text-xl font-medium mb-1">{nextAppointment.doctor}</div>
+                    <p className="text-sm text-slate-600 mb-1">{nextAppointment.specialty}</p>
                     <p className="text-sm text-slate-600 mb-4">
-                      {formatDate(upcomingAppointments[0].date)} at {upcomingAppointments[0].time}
+                      {formatDate(nextAppointment.date)} at {nextAppointment.time}
                     </p>
                   </>
                 ) : (
@@ -121,7 +107,10 @@ const PatientDashboard = () => {
               <CardContent>
                 <div className="text-3xl font-bold mb-2">{prescriptions.length}</div>
                 <p className="text-sm text-slate-600 mb-4">
-                  Last updated {formatDate(prescriptions[0]?.issued)}
+                  {prescriptions.length > 0 
+                    ? `Last updated ${formatDate(prescriptions[0]?.issued)}`
+                    : "No active prescriptions"
+                  }
                 </p>
                 <ButtonCustom variant="outline" size="sm" className="w-full">
                   View Prescriptions
@@ -131,18 +120,21 @@ const PatientDashboard = () => {
 
             <Card className="card-hover">
               <CardHeader className="flex flex-row items-center space-x-4 pb-2">
-                <Pill className="h-5 w-5 text-primary" />
+                <MessageSquare className="h-5 w-5 text-primary" />
                 <div>
-                  <CardTitle className="text-lg">Today's Medications</CardTitle>
+                  <CardTitle className="text-lg">Messages</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold mb-2">{medicationReminders.length}</div>
+                <div className="text-3xl font-bold mb-2">{unreadMessages}</div>
                 <p className="text-sm text-slate-600 mb-4">
-                  {medicationReminders.filter(m => m.taken).length} taken, {medicationReminders.filter(m => !m.taken).length} remaining
+                  {unreadMessages > 0 
+                    ? `${unreadMessages} unread message${unreadMessages > 1 ? 's' : ''}`
+                    : "No new messages"
+                  }
                 </p>
                 <ButtonCustom variant="outline" size="sm" className="w-full">
-                  View Reminders
+                  View Messages
                 </ButtonCustom>
               </CardContent>
             </Card>
@@ -179,6 +171,12 @@ const PatientDashboard = () => {
                       </div>
                     </div>
                   ))}
+                  
+                  {medicationReminders.length === 0 && (
+                    <div className="flex justify-center items-center py-8 text-slate-400">
+                      <p>No medication reminders for today</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -193,7 +191,7 @@ const PatientDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {prescriptions.map((prescription) => (
+                  {prescriptions.slice(0, 3).map((prescription) => (
                     <div key={prescription.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                       <div>
                         <p className="font-medium">{prescription.medication} {prescription.dosage}</p>
@@ -203,6 +201,12 @@ const PatientDashboard = () => {
                       <ButtonCustom variant="outline" size="sm">Details</ButtonCustom>
                     </div>
                   ))}
+                  
+                  {prescriptions.length === 0 && (
+                    <div className="flex justify-center items-center py-8 text-slate-400">
+                      <p>No prescriptions found</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
