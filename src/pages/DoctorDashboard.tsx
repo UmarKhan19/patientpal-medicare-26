@@ -1,12 +1,13 @@
-
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Dashboard from "./Dashboard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Users, ClipboardList, Package, MessageSquare, UserCircle } from "lucide-react";
+import { Calendar, Users, ClipboardList, Package, MessageSquare, UserCircle, Search } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDate, getStatusColor } from "@/lib/utils";
+import PatientSearch from "@/components/doctor/PatientSearch";
 import { 
   getTodaysAppointments, 
   getUpcomingAppointments, 
@@ -18,6 +19,7 @@ import {
 const DoctorDashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const navigate = useNavigate();
 
   // Get data from our dummy data source
   const todaysAppointments = getTodaysAppointments(user?.id || "d1");
@@ -31,6 +33,10 @@ const DoctorDashboard = () => {
       <div className="mb-8 animate-fade-in">
         <h1 className="text-3xl font-bold mb-2">Welcome, {user?.name}</h1>
         <p className="text-slate-600">Manage your practice and patients from your dashboard</p>
+      </div>
+
+      <div className="mb-6">
+        <PatientSearch placeholder="Search for a patient by name..." />
       </div>
 
       <Tabs defaultValue="overview" className="space-y-8" onValueChange={setActiveTab}>
@@ -171,35 +177,135 @@ const DoctorDashboard = () => {
             <Card className="card-hover">
               <CardHeader>
                 <div className="flex justify-between items-center">
-                  <CardTitle>Low Inventory Alert</CardTitle>
-                  <ButtonCustom variant="ghost" size="sm">Manage Inventory</ButtonCustom>
+                  <CardTitle>Recent Patients</CardTitle>
+                  <ButtonCustom variant="ghost" size="sm">View All Patients</ButtonCustom>
                 </div>
-                <CardDescription>Items that need restocking soon</CardDescription>
+                <CardDescription>Your recently seen patients</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {lowInventoryItems.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                      <div>
-                        <p className="font-medium">{item.name}</p>
-                        <p className="text-sm text-slate-600">Current: {item.inStock} / Threshold: {item.threshold}</p>
+                  {recentPatients.map((patient) => (
+                    <div 
+                      key={patient.id} 
+                      className="flex items-center justify-between p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100"
+                      onClick={() => navigate(`/doctor/patient/${patient.id}`)}
+                    >
+                      <div className="flex items-center space-x-3">
+                        {patient.picture ? (
+                          <img 
+                            src={patient.picture} 
+                            alt={patient.name} 
+                            className="h-10 w-10 rounded-full object-cover" 
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <UserCircle className="h-6 w-6 text-primary" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-medium">{patient.name}</p>
+                          <p className="text-sm text-slate-600">
+                            Last visit: {patient.lastVisit ? formatDate(patient.lastVisit) : 'N/A'}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex items-center">
-                        <div className={`h-2.5 w-2.5 rounded-full ${getStatusColor(item.reorderStatus)} mr-2`}></div>
-                        <ButtonCustom variant="outline" size="sm">Restock</ButtonCustom>
-                      </div>
+                      <ButtonCustom size="sm">View Profile</ButtonCustom>
                     </div>
                   ))}
                   
-                  {lowInventoryItems.length === 0 && (
+                  {recentPatients.length === 0 && (
                     <div className="flex justify-center items-center py-8 text-slate-400">
-                      <p>No low inventory items</p>
+                      <p>No recent patients</p>
                     </div>
                   )}
                 </div>
               </CardContent>
             </Card>
           </div>
+
+          <Card className="card-hover">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Low Inventory Alert</CardTitle>
+                <ButtonCustom variant="ghost" size="sm">Manage Inventory</ButtonCustom>
+              </div>
+              <CardDescription>Items that need restocking soon</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {lowInventoryItems.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                    <div>
+                      <p className="font-medium">{item.name}</p>
+                      <p className="text-sm text-slate-600">Current: {item.inStock} / Threshold: {item.threshold}</p>
+                    </div>
+                    <div className="flex items-center">
+                      <div className={`h-2.5 w-2.5 rounded-full ${getStatusColor(item.reorderStatus)} mr-2`}></div>
+                      <ButtonCustom variant="outline" size="sm">Restock</ButtonCustom>
+                    </div>
+                  </div>
+                ))}
+                
+                {lowInventoryItems.length === 0 && (
+                  <div className="flex justify-center items-center py-8 text-slate-400">
+                    <p>No low inventory items</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="patients" className="animate-fade-in">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Patient Records</CardTitle>
+                <ButtonCustom variant="outline">Add New Patient</ButtonCustom>
+              </div>
+              <CardDescription>
+                Search and manage your patient records
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-6">
+                <PatientSearch placeholder="Search patients..." />
+              </div>
+              
+              <h3 className="text-lg font-medium mb-4">Recent Patients</h3>
+              <div className="space-y-4">
+                {recentPatients.map((patient) => (
+                  <div 
+                    key={patient.id} 
+                    className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100"
+                    onClick={() => navigate(`/doctor/patient/${patient.id}`)}
+                  >
+                    <div className="flex items-center space-x-4">
+                      {patient.picture ? (
+                        <img 
+                          src={patient.picture} 
+                          alt={patient.name} 
+                          className="h-12 w-12 rounded-full object-cover" 
+                        />
+                      ) : (
+                        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                          <UserCircle className="h-7 w-7 text-primary" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-medium">{patient.name}</p>
+                        <p className="text-sm text-slate-600">ID: {patient.id}</p>
+                        <p className="text-sm text-slate-600">
+                          Last visit: {patient.lastVisit ? formatDate(patient.lastVisit) : 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                    <ButtonCustom>View Profile</ButtonCustom>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="appointments" className="animate-fade-in">
@@ -211,20 +317,6 @@ const DoctorDashboard = () => {
             <CardContent>
               <div className="flex justify-center items-center h-64 text-slate-400">
                 <p>Appointment management interface will be available here</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="patients" className="animate-fade-in">
-          <Card>
-            <CardHeader>
-              <CardTitle>Patient Records</CardTitle>
-              <CardDescription>View and manage your patient information</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex justify-center items-center h-64 text-slate-400">
-                <p>Patient records interface will be available here</p>
               </div>
             </CardContent>
           </Card>
