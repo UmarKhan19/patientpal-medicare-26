@@ -38,7 +38,7 @@ const appointmentSchema = z.object({
 
 type AppointmentFormValues = z.infer<typeof appointmentSchema>;
 
-const DoctorSearch = () => {
+const DoctorSearch = ({ onTabChange }: { onTabChange?: (tab: string) => void }) => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -114,6 +114,11 @@ const DoctorSearch = () => {
     
     setBookingOpen(false);
     setSelectedDoctor(null);
+    
+    // Switch to appointments tab if the callback is provided
+    if (onTabChange) {
+      onTabChange("appointments");
+    }
   };
 
   // Generate available times for the appointment

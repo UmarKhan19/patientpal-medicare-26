@@ -16,8 +16,9 @@ import {
 } from "@/lib/dummy-data";
 import DoctorSearch from "@/components/patient/DoctorSearch";
 import { Separator } from "@/components/ui/separator";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 
 const PatientDashboard = () => {
   const { user } = useAuth();
@@ -25,6 +26,8 @@ const PatientDashboard = () => {
   const [medicationReminders, setMedicationReminders] = useState(
     getPatientMedicationReminders(user?.id || "")
   );
+  const [selectedMessage, setSelectedMessage] = useState<any>(null);
+  const [messageText, setMessageText] = useState("");
 
   const patientData = {
     appointments: getPatientAppointments(user?.id || ""),
@@ -75,7 +78,19 @@ const PatientDashboard = () => {
   };
 
   // Get today's medications for the overview section
-  const todaysMedications = medicationReminders.slice(0, 3);
+  const todaysMedications = medicationReminders.slice(0, 5);
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!messageText.trim()) return;
+    
+    toast({
+      title: "Message Sent",
+      description: "Your message has been sent to your healthcare provider."
+    });
+
+    setMessageText("");
+  };
 
   return (
     <Dashboard requiredRole="patient">
@@ -87,7 +102,7 @@ const PatientDashboard = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-8" onValueChange={setActiveTab}>
+      <Tabs defaultValue="overview" className="space-y-8" onValueChange={setActiveTab} value={activeTab}>
         <TabsList className="grid w-full grid-cols-6 h-auto p-1 bg-slate-100 rounded-lg">
           <TabsTrigger 
             value="overview" 
@@ -345,7 +360,7 @@ const PatientDashboard = () => {
               <div className="space-y-4">
                 {sortedTimes.length > 0 ? (
                   <div className="space-y-4">
-                    {sortedTimes.slice(0, 2).map((time) => (
+                    {sortedTimes.slice(0, 3).map((time) => (
                       <div key={time} className="space-y-3">
                         <div className="flex items-center space-x-2">
                           <Clock className="h-5 w-5 text-primary" />
@@ -360,8 +375,8 @@ const PatientDashboard = () => {
                             }`}
                           >
                             <div className="flex items-center space-x-4">
-                              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                                <Pill className="h-6 w-6 text-primary" />
+                              <div className={`h-12 w-12 rounded-full bg-${medication.color || 'blue'}-100 flex items-center justify-center`}>
+                                <Pill className={`h-6 w-6 text-${medication.color || 'primary'}`} />
                               </div>
                               <div>
                                 <p className="font-medium text-lg">{medication.medication}</p>
@@ -411,7 +426,7 @@ const PatientDashboard = () => {
               <CardDescription>Search for a specialist and book your appointment</CardDescription>
             </CardHeader>
             <CardContent>
-              <DoctorSearch />
+              <DoctorSearch onTabChange={setActiveTab} />
             </CardContent>
           </Card>
 
@@ -573,8 +588,8 @@ const PatientDashboard = () => {
                           }`}
                         >
                           <div className="flex items-center space-x-4">
-                            <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                              <Pill className="h-6 w-6 text-primary" />
+                            <div className={`h-12 w-12 rounded-full bg-${medication.color || 'blue'}-100 flex items-center justify-center`}>
+                              <Pill className={`h-6 w-6 text-${medication.color || 'primary'}`} />
                             </div>
                             <div>
                               <p className="font-medium text-lg">{medication.medication}</p>
@@ -657,22 +672,101 @@ const PatientDashboard = () => {
               <CardDescription>Communicate with your doctor securely</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {patientData.messages.map((message) => (
-                  <div key={message.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                    <div className="flex items-center space-x-4 mb-3 sm:mb-0">
-                      <MessageSquare className="h-5 w-5 text-orange-500" />
-                      <div>
-                        <h4 className="font-medium">Dr. {message.senderName}</h4>
-                        <p className="text-sm text-slate-600">{message.content}</p>
-                        <p className="text-xs text-slate-500">
-                          {new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                        </p>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-1">
+                  <div className="mb-4">
+                    <Input placeholder="Search messages..." />
+                  </div>
+                  <div className="border rounded-lg overflow-hidden">
+                    <div className="bg-slate-100 p-3 border-b font-medium">
+                      Recent Conversations
+                    </div>
+                    <div className="divide-y">
+                      {patientData.messages.map((message) => (
+                        <div 
+                          key={message.id} 
+                          className={`p-3 hover:bg-slate-50 cursor-pointer flex items-center space-x-3 ${selectedMessage?.id === message.id ? 'bg-slate-100' : ''}`}
+                          onClick={() => setSelectedMessage(message)}
+                        >
+                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <UserCircle className="h-6 w-6 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">Dr. {message.senderName}</p>
+                            <p className="text-sm text-slate-600 truncate">{message.content}</p>
+                            <p className="text-xs text-slate-500">
+                              {new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            </p>
+                          </div>
+                          {!message.isRead && (
+                            <div className="w-2 h-2 bg-primary rounded-full"></div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="lg:col-span-2 border rounded-lg flex flex-col h-[500px]">
+                  {selectedMessage ? (
+                    <>
+                      <div className="p-4 border-b">
+                        <div className="flex items-center space-x-3">
+                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <UserCircle className="h-6 w-6 text-primary" />
+                          </div>
+                          <div>
+                            <h3 className="font-medium">Dr. {selectedMessage.senderName}</h3>
+                            <p className="text-sm text-slate-600">Online</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex-1 p-4 overflow-y-auto space-y-4">
+                        <div className="flex items-start space-x-2">
+                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            <UserCircle className="h-5 w-5 text-primary" />
+                          </div>
+                          <div className="bg-slate-100 rounded-xl p-3 max-w-[80%]">
+                            <p className="text-sm">{selectedMessage.content}</p>
+                            <p className="text-xs text-slate-500 mt-1">
+                              {new Date(selectedMessage.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-start justify-end space-x-2">
+                          <div className="bg-primary text-white rounded-xl p-3 max-w-[80%]">
+                            <p className="text-sm">Thank you for your message. I'll follow the advice.</p>
+                            <p className="text-xs text-white/80 mt-1">
+                              {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            </p>
+                          </div>
+                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            <UserCircle className="h-5 w-5 text-primary" />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="p-4 border-t">
+                        <form onSubmit={handleSendMessage} className="flex space-x-2">
+                          <Input
+                            placeholder="Type your message..."
+                            value={messageText}
+                            onChange={(e) => setMessageText(e.target.value)}
+                            className="flex-1"
+                          />
+                          <ButtonCustom type="submit">Send</ButtonCustom>
+                        </form>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center p-6 text-slate-400">
+                      <div className="text-center">
+                        <MessageSquare className="h-12 w-12 mx-auto mb-2 text-slate-300" />
+                        <p>Select a conversation to view messages</p>
                       </div>
                     </div>
-                    <ButtonCustom size="sm" variant="outline">View</ButtonCustom>
-                  </div>
-                ))}
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -683,4 +777,3 @@ const PatientDashboard = () => {
 };
 
 export default PatientDashboard;
-

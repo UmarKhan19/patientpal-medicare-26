@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ButtonCustom } from "@/components/ui/button-custom";
@@ -11,6 +11,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
 
   useEffect(() => {
@@ -26,9 +27,16 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navLinks = [
-    { title: "Home", path: "/" },
-  ];
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (user) {
+      // If user is logged in, redirect to the appropriate dashboard
+      navigate(user.role === 'doctor' ? "/doctor" : "/patient");
+    } else {
+      // If not logged in, redirect to landing page
+      navigate("/");
+    }
+  };
 
   return (
     <header
@@ -38,30 +46,12 @@ const Navbar = () => {
       )}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <Link to="/" className="flex items-center space-x-2">
+        <div onClick={handleLogoClick} className="flex items-center space-x-2 cursor-pointer">
           <div className="text-primary font-bold text-2xl">BBPMS</div>
-        </Link>
+        </div>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          <ul className="flex space-x-6">
-            {navLinks.map((link) => (
-              <li key={link.title}>
-                <Link
-                  to={link.path}
-                  className={cn(
-                    "text-sm font-medium transition-colors",
-                    location.pathname === link.path || location.hash === link.path.substring(1)
-                      ? "text-primary font-semibold"
-                      : "text-foreground/80 hover:text-primary"
-                  )}
-                >
-                  {link.title}
-                </Link>
-              </li>
-            ))}
-          </ul>
-
           {user ? (
             <div className="flex items-center space-x-4">
               <ButtonCustom
@@ -126,23 +116,6 @@ const Navbar = () => {
       {isMenuOpen && (
         <nav className="md:hidden glass mt-4 p-4 rounded-lg animate-fade-in">
           <ul className="flex flex-col space-y-4">
-            {navLinks.map((link) => (
-              <li key={link.title}>
-                <Link
-                  to={link.path}
-                  className={cn(
-                    "block py-2 text-sm font-medium transition-colors",
-                    location.pathname === link.path
-                      ? "text-primary font-semibold"
-                      : "text-foreground/80 hover:text-primary"
-                  )}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {link.title}
-                </Link>
-              </li>
-            ))}
-
             {user ? (
               <>
                 <li>
