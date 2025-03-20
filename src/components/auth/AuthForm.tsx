@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -19,8 +18,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-// Define form schemas
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
@@ -44,10 +43,10 @@ interface AuthFormProps {
 
 const AuthForm = ({ type }: AuthFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { login, signup } = useAuth();
   const navigate = useNavigate();
 
-  // Login form
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -56,7 +55,6 @@ const AuthForm = ({ type }: AuthFormProps) => {
     },
   });
 
-  // Signup form
   const signupForm = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -67,26 +65,28 @@ const AuthForm = ({ type }: AuthFormProps) => {
     },
   });
 
-  // Handle login submit
   const onLoginSubmit = async (data: LoginFormValues) => {
     setIsSubmitting(true);
+    setError(null);
     try {
       await login(data.email, data.password);
       // Navigation is handled in the auth context
     } catch (error) {
       console.error("Login error:", error);
+      setError(error instanceof Error ? error.message : "Login failed. Please try again.");
       setIsSubmitting(false);
     }
   };
 
-  // Handle signup submit
   const onSignupSubmit = async (data: SignupFormValues) => {
     setIsSubmitting(true);
+    setError(null);
     try {
       await signup(data.name, data.email, data.password, data.role as UserRole);
       // Navigation is handled in the auth context
     } catch (error) {
       console.error("Signup error:", error);
+      setError(error instanceof Error ? error.message : "Signup failed. Please try again.");
       setIsSubmitting(false);
     }
   };
@@ -106,6 +106,20 @@ const AuthForm = ({ type }: AuthFormProps) => {
               }
             </p>
           </div>
+
+          {error && (
+            <Alert variant="destructive" className="py-2">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {type === "login" && (
+            <div className="text-sm text-slate-600 border border-blue-100 bg-blue-50 p-3 rounded-lg">
+              <p className="font-medium text-blue-700 mb-1">Demo Accounts:</p>
+              <p>Doctor: doctor@example.com / password</p>
+              <p>Patient: patient@example.com / password</p>
+            </div>
+          )}
 
           {type === "signup" && (
             <FormField

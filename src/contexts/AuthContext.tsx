@@ -27,8 +27,30 @@ interface AuthContextType {
 // Create context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Combine doctor and patient data for authentication
+// For debugging - log the available users
+console.log("Available doctors:", doctors.map(d => d.email));
+console.log("Available patients:", patients.map(p => p.email));
+
+// Create dummy user credentials - these are the actual credentials that will work
 const USERS = [
+  // Add some explicit test credentials that will definitely work
+  {
+    id: "d1",
+    name: "Doctor Test",
+    email: "doctor@example.com",
+    password: "password",
+    role: "doctor" as UserRole,
+    picture: null
+  },
+  {
+    id: "p1",
+    name: "Patient Test",
+    email: "patient@example.com",
+    password: "password", 
+    role: "patient" as UserRole,
+    picture: null
+  },
+  // Then include all the users from dummy data
   ...doctors.map(doctor => ({
     id: doctor.id,
     name: doctor.name,
@@ -74,12 +96,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     
     try {
+      // Log attempt for debugging
+      console.log(`Login attempt: ${email} / ${password}`);
+      console.log("Available users:", USERS.map(u => u.email));
+      
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       const foundUser = USERS.find(u => u.email === email && u.password === password);
       
       if (!foundUser) {
+        console.error("User not found:", email);
         throw new Error("Invalid email or password");
       }
       
