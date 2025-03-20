@@ -2,7 +2,7 @@ import { useState } from "react";
 import Dashboard from "./Dashboard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, ClipboardList, MessageSquare, Check, X, AlertTriangle, UserCircle, Pill } from "lucide-react";
+import { Calendar, ClipboardList, MessageSquare, Check, X, AlertTriangle, UserCircle, Pill, Clock, CheckCircle2 } from "lucide-react";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDate, getStatusColor } from "@/lib/utils";
@@ -14,16 +14,22 @@ import {
   getPatientMessages
 } from "@/lib/dummy-data";
 import DoctorSearch from "@/components/patient/DoctorSearch";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const PatientDashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const [medicationReminders, setMedicationReminders] = useState(
+    getPatientMedicationReminders(user?.id || "")
+  );
 
   const patientData = {
     appointments: getPatientAppointments(user?.id || ""),
     prescriptions: getPatientPrescriptions(user?.id || ""),
     testResults: getPatientTests(user?.id || ""),
-    medicationReminders: getPatientMedicationReminders(user?.id || ""),
+    medicationReminders,
     messages: getPatientMessages(user?.id || ""),
   };
 
@@ -36,6 +42,37 @@ const PatientDashboard = () => {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 3);
 
+  const groupedMedications = medicationReminders.reduce((acc, med) => {
+    if (!acc[med.time]) {
+      acc[med.time] = [];
+    }
+    acc[med.time].push(med);
+    return acc;
+  }, {} as Record<string, typeof medicationReminders>);
+
+  const sortedTimes = Object.keys(groupedMedications).sort((a, b) => {
+    const [aHour, aMin] = a.split(':').map(Number);
+    const [bHour, bMin] = b.split(':').map(Number);
+    return (aHour * 60 + aMin) - (bHour * 60 + bMin);
+  });
+
+  const handleMedicationTaken = (medicationId: string, taken: boolean) => {
+    setMedicationReminders(prev => 
+      prev.map(med => 
+        med.id === medicationId ? { ...med, taken } : med
+      )
+    );
+    
+    const medication = medicationReminders.find(med => med.id === medicationId);
+    
+    if (taken) {
+      toast({
+        title: "Medication taken",
+        description: `You've marked ${medication?.medication} as taken.`,
+      });
+    }
+  };
+
   return (
     <Dashboard requiredRole="patient">
       <div className="mb-8 animate-fade-in">
@@ -47,7 +84,7 @@ const PatientDashboard = () => {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-8" onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5 h-auto p-1 bg-slate-100 rounded-lg">
+        <TabsList className="grid w-full grid-cols-6 h-auto p-1 bg-slate-100 rounded-lg">
           <TabsTrigger 
             value="overview" 
             className={`py-3 ${activeTab === "overview" ? "bg-white shadow-sm" : ""}`}
@@ -71,6 +108,12 @@ const PatientDashboard = () => {
             className={`py-3 ${activeTab === "test-results" ? "bg-white shadow-sm" : ""}`}
           >
             Test Results
+          </TabsTrigger>
+          <TabsTrigger 
+            value="medication-schedule" 
+            className={`py-3 ${activeTab === "medication-schedule" ? "bg-white shadow-sm" : ""}`}
+          >
+            Medication
           </TabsTrigger>
           <TabsTrigger 
             value="messages" 
@@ -371,6 +414,116 @@ const PatientDashboard = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="medication-schedule" className="animate-fade-in space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Today's Medication Schedule</CardTitle>
+              <CardDescription>Track your medications and mark them as taken</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {sortedTimes.length > 0 ? (
+                  sortedTimes.map((time) => (
+                    <div key={time} className="space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <Clock className="h-5 w-5 text-primary" />
+                        <h3 className="text-lg font-medium">{time}</h3>
+                      </div>
+                      
+                      <div className="bg-slate-50 rounded-lg divide-y">
+                        {groupedMedications[time].map((medication) => (
+                          <div 
+                            key={medication.id} 
+                            className={`flex items-center justify-between p-4 ${
+                              medication.taken ? "bg-green-50" : ""
+                            }`}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                <Pill className="h-6 w-6 text-primary" />
+                              </div>
+                              <div>
+                                <p className="font-medium">{medication.medication}</p>
+                                <p className="text-sm text-slate-600">Take with food</p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center space-x-4">
+                              <div className="text-sm text-slate-500">
+                                {medication.taken ? (
+                                  <span className="flex items-center text-green-600">
+                                    <CheckCircle2 className="h-4 w-4 mr-1" /> Taken
+                                  </span>
+                                ) : (
+                                  <span>Not taken yet</span>
+                                )}
+                              </div>
+                              
+                              <div className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`medication-${medication.id}`}
+                                  checked={medication.taken}
+                                  onCheckedChange={(checked) => 
+                                    handleMedicationTaken(medication.id, checked === true)
+                                  }
+                                />
+                                <label
+                                  htmlFor={`medication-${medication.id}`}
+                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                >
+                                  Mark as taken
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-slate-500">
+                    <p>No medications scheduled for today</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Medication History</CardTitle>
+              <CardDescription>Your medication history for the past week</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="bg-slate-50 p-4 rounded-lg">
+                  <div className="flex justify-between items-center mb-3">
+                    <p className="font-medium">Yesterday</p>
+                    <span className="text-green-600 text-sm flex items-center">
+                      <CheckCircle2 className="h-4 w-4 mr-1" /> All medications taken
+                    </span>
+                  </div>
+                  <div className="text-sm text-slate-600">
+                    <p>3 medications scheduled</p>
+                  </div>
+                </div>
+                
+                <div className="bg-slate-50 p-4 rounded-lg">
+                  <div className="flex justify-between items-center mb-3">
+                    <p className="font-medium">2 days ago</p>
+                    <span className="text-amber-600 text-sm flex items-center">
+                      <AlertTriangle className="h-4 w-4 mr-1" /> 1 medication missed
+                    </span>
+                  </div>
+                  <div className="text-sm text-slate-600">
+                    <p>3 medications scheduled</p>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
