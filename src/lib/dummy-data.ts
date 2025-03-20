@@ -96,6 +96,9 @@ export const doctors: Doctor[] = Array.from({ length: 5 }, (_, i) => ({
   picture: faker.image.avatar(),
 }));
 
+// Blood type options since faker.person.bloodType() doesn't exist
+const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+
 export const patients: Patient[] = Array.from({ length: 20 }, (_, i) => ({
   id: `p${i + 1}`,
   name: faker.person.fullName(),
@@ -103,7 +106,7 @@ export const patients: Patient[] = Array.from({ length: 20 }, (_, i) => ({
   phone: faker.phone.number(),
   gender: faker.person.sex(),
   age: faker.number.int({ min: 18, max: 85 }),
-  bloodType: faker.person.bloodType(),
+  bloodType: faker.helpers.arrayElement(bloodTypes),
   allergies: faker.helpers.arrayElements([
     'Penicillin',
     'Latex',
