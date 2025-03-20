@@ -13,6 +13,7 @@ export interface User {
   email: string;
   role: UserRole;
   picture?: string | null;
+  specialty?: string; // Added specialty field
 }
 
 // Define context type
@@ -20,7 +21,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string, role: UserRole) => Promise<void>;
+  signup: (name: string, email: string, password: string, role: UserRole, specialty?: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -40,7 +41,8 @@ const USERS = [
     email: "doctor@example.com",
     password: "password",
     role: "doctor" as UserRole,
-    picture: null
+    picture: null,
+    specialty: "General Practice"
   },
   {
     id: "p1",
@@ -57,7 +59,8 @@ const USERS = [
     email: doctor.email,
     password: "password", // In a real app, this would be hashed
     role: "doctor" as UserRole,
-    picture: doctor.picture
+    picture: doctor.picture,
+    specialty: doctor.specialty
   })),
   ...patients.map(patient => ({
     id: patient.id,
@@ -132,8 +135,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Signup function
-  const signup = async (name: string, email: string, password: string, role: UserRole) => {
+  // Signup function - updated to include specialty
+  const signup = async (name: string, email: string, password: string, role: UserRole, specialty?: string) => {
     setLoading(true);
     
     try {
@@ -146,12 +149,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       // Create new user
-      const newUser = {
+      const newUser: User = {
         id: `${role.charAt(0)}${USERS.length + 1}`,
         name,
         email,
         role,
       };
+      
+      // Add specialty if role is doctor
+      if (role === "doctor" && specialty) {
+        newUser.specialty = specialty;
+      }
       
       setUser(newUser);
       localStorage.setItem("bbpms_user", JSON.stringify(newUser));

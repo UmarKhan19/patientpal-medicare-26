@@ -8,11 +8,30 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/components/ui/use-toast";
 import { User } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+// List of doctor specialties - same as in AuthForm
+const specialties = [
+  "Cardiologist",
+  "Dermatologist",
+  "Orthopedic",
+  "ENT",
+  "Ophthalmologist", 
+  "Neurologist",
+  "Psychiatrist",
+  "Gynecologist",
+  "Pediatrician",
+  "Urologist",
+  "General Practice",
+  "Internal Medicine",
+  "Other"
+];
 
 const Profile = () => {
   const { user } = useAuth();
   const [name, setName] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
+  const [specialty, setSpecialty] = useState(user?.specialty || "");
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleUpdate = (e: React.FormEvent) => {
@@ -84,6 +103,28 @@ const Profile = () => {
                     className="bg-muted"
                   />
                 </div>
+                
+                {user.role === "doctor" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="specialty">Specialty</Label>
+                    <Select 
+                      value={specialty} 
+                      onValueChange={setSpecialty}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select your specialty" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {specialties.map((spec) => (
+                          <SelectItem key={spec} value={spec}>
+                            {spec}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                
                 <Button type="submit" disabled={isUpdating} className="w-full">
                   {isUpdating ? "Updating..." : "Update Profile"}
                 </Button>

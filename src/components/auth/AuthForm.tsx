@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -32,6 +34,7 @@ const signupSchema = z.object({
   role: z.enum(["doctor", "patient"], { 
     required_error: "Please select a role" 
   }),
+  specialty: z.string().optional(),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -40,6 +43,23 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 interface AuthFormProps {
   type: "login" | "signup";
 }
+
+// List of doctor specialties
+const specialties = [
+  "Cardiologist",
+  "Dermatologist",
+  "Orthopedic",
+  "ENT",
+  "Ophthalmologist", 
+  "Neurologist",
+  "Psychiatrist",
+  "Gynecologist",
+  "Pediatrician",
+  "Urologist",
+  "General Practice",
+  "Internal Medicine",
+  "Other"
+];
 
 const AuthForm = ({ type }: AuthFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,8 +82,11 @@ const AuthForm = ({ type }: AuthFormProps) => {
       email: "",
       password: "",
       role: "patient",
+      specialty: "",
     },
   });
+
+  const selectedRole = signupForm.watch("role");
 
   const onLoginSubmit = async (data: LoginFormValues) => {
     setIsSubmitting(true);
@@ -82,7 +105,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
     setIsSubmitting(true);
     setError(null);
     try {
-      await signup(data.name, data.email, data.password, data.role as UserRole);
+      await signup(data.name, data.email, data.password, data.role as UserRole, data.specialty);
       // Navigation is handled in the auth context
     } catch (error) {
       console.error("Signup error:", error);
@@ -166,32 +189,64 @@ const AuthForm = ({ type }: AuthFormProps) => {
           />
 
           {type === "signup" && (
-            <FormField
-              control={signupForm.control}
-              name="role"
-              render={({ field }) => (
-                <FormItem className="space-y-2">
-                  <FormLabel>I am a</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex gap-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="doctor" id="doctor" />
-                        <Label htmlFor="doctor">Doctor</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="patient" id="patient" />
-                        <Label htmlFor="patient">Patient</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+            <>
+              <FormField
+                control={signupForm.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel>I am a</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="doctor" id="doctor" />
+                          <Label htmlFor="doctor">Doctor</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="patient" id="patient" />
+                          <Label htmlFor="patient">Patient</Label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {selectedRole === "doctor" && (
+                <FormField
+                  control={signupForm.control}
+                  name="specialty"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Specialty</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="rounded-lg">
+                            <SelectValue placeholder="Select your specialty" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {specialties.map((specialty) => (
+                            <SelectItem key={specialty} value={specialty}>
+                              {specialty}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
-            />
+            </>
           )}
 
           {type === "login" && (
