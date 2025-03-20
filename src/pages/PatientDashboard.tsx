@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Dashboard from "./Dashboard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,6 +74,9 @@ const PatientDashboard = () => {
     }
   };
 
+  // Get today's medications for the overview section
+  const todaysMedications = medicationReminders.slice(0, 3);
+
   return (
     <Dashboard requiredRole="patient">
       <div className="mb-8 animate-fade-in">
@@ -124,7 +128,7 @@ const PatientDashboard = () => {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 animate-fade-in">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <Card className="card-hover">
               <CardHeader className="flex flex-row items-center space-x-4 pb-2">
                 <Calendar className="h-5 w-5 text-primary" />
@@ -169,6 +173,27 @@ const PatientDashboard = () => {
 
             <Card className="card-hover">
               <CardHeader className="flex flex-row items-center space-x-4 pb-2">
+                <Clock className="h-5 w-5 text-primary" />
+                <div>
+                  <CardTitle className="text-lg">Medications</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold mb-2">{medicationReminders.length}</div>
+                <p className="text-sm text-slate-600 mb-4">
+                  {todaysMedications.length > 0
+                    ? `${todaysMedications.filter(m => m.taken).length}/${todaysMedications.length} taken today`
+                    : "No medications today"
+                  }
+                </p>
+                <ButtonCustom variant="outline" size="sm" className="w-full" onClick={() => setActiveTab("medication-schedule")}>
+                  View Schedule
+                </ButtonCustom>
+              </CardContent>
+            </Card>
+
+            <Card className="card-hover">
+              <CardHeader className="flex flex-row items-center space-x-4 pb-2">
                 <MessageSquare className="h-5 w-5 text-primary" />
                 <div>
                   <CardTitle className="text-lg">Messages</CardTitle>
@@ -190,16 +215,6 @@ const PatientDashboard = () => {
               </CardContent>
             </Card>
           </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Book an Appointment with a Specialist</CardTitle>
-              <CardDescription>Search for a specialist or doctor by name or specialty</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <DoctorSearch />
-            </CardContent>
-          </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="card-hover">
@@ -272,6 +287,64 @@ const PatientDashboard = () => {
               </CardContent>
             </Card>
           </div>
+
+          <Card className="card-hover">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Today's Medication</CardTitle>
+                <ButtonCustom variant="ghost" size="sm" onClick={() => setActiveTab("medication-schedule")}>View Full Schedule</ButtonCustom>
+              </div>
+              <CardDescription>Remember to take your medications on time</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {sortedTimes.length > 0 ? (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {sortedTimes.slice(0, 2).map((time) => (
+                      <div key={time} className="bg-slate-50 p-4 rounded-lg">
+                        <div className="flex items-center space-x-2 mb-3">
+                          <Clock className="h-5 w-5 text-primary" />
+                          <h3 className="font-medium">{time}</h3>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          {groupedMedications[time].map((medication) => (
+                            <div 
+                              key={medication.id} 
+                              className={`flex items-center justify-between p-2 rounded ${
+                                medication.taken ? "bg-green-50" : "bg-white"
+                              }`}
+                            >
+                              <div className="flex items-center space-x-3">
+                                <Pill className="h-4 w-4 text-primary" />
+                                <p className="text-sm font-medium">{medication.medication}</p>
+                              </div>
+                              
+                              <div className="flex items-center">
+                                <Checkbox
+                                  id={`overview-med-${medication.id}`}
+                                  checked={medication.taken}
+                                  onCheckedChange={(checked) => 
+                                    handleMedicationTaken(medication.id, checked === true)
+                                  }
+                                  className="mr-2"
+                                />
+                                {medication.taken && <CheckCircle2 className="h-4 w-4 text-green-600" />}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-slate-500">
+                    <p>No medications scheduled for today</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="appointments" className="space-y-6 animate-fade-in">
