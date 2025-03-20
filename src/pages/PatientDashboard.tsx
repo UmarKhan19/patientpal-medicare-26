@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Dashboard from "./Dashboard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -143,7 +144,12 @@ const PatientDashboard = () => {
                     : "No upcoming appointments"
                   }
                 </p>
-                <ButtonCustom variant="outline" size="sm" className="w-full" onClick={() => setActiveTab("appointments")}>
+                <ButtonCustom 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full" 
+                  onClick={() => setActiveTab("appointments")}
+                >
                   Book Appointment
                 </ButtonCustom>
               </CardContent>
@@ -164,7 +170,12 @@ const PatientDashboard = () => {
                     : "No prescriptions"
                   }
                 </p>
-                <ButtonCustom variant="outline" size="sm" className="w-full" onClick={() => setActiveTab("prescriptions")}>
+                <ButtonCustom 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full" 
+                  onClick={() => setActiveTab("prescriptions")}
+                >
                   View Prescriptions
                 </ButtonCustom>
               </CardContent>
@@ -185,7 +196,12 @@ const PatientDashboard = () => {
                     : "No medications today"
                   }
                 </p>
-                <ButtonCustom variant="outline" size="sm" className="w-full" onClick={() => setActiveTab("medication-schedule")}>
+                <ButtonCustom 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full" 
+                  onClick={() => setActiveTab("medication-schedule")}
+                >
                   View Schedule
                 </ButtonCustom>
               </CardContent>
@@ -208,7 +224,12 @@ const PatientDashboard = () => {
                     : "No unread messages"
                   }
                 </p>
-                <ButtonCustom variant="outline" size="sm" className="w-full" onClick={() => setActiveTab("messages")}>
+                <ButtonCustom 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full" 
+                  onClick={() => setActiveTab("messages")}
+                >
                   View Messages
                 </ButtonCustom>
               </CardContent>
@@ -220,7 +241,13 @@ const PatientDashboard = () => {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle>Upcoming Appointments</CardTitle>
-                  <ButtonCustom variant="ghost" size="sm" onClick={() => setActiveTab("appointments")}>View All</ButtonCustom>
+                  <ButtonCustom 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setActiveTab("appointments")}
+                  >
+                    View All
+                  </ButtonCustom>
                 </div>
                 <CardDescription>Your scheduled appointments</CardDescription>
               </CardHeader>
@@ -257,7 +284,13 @@ const PatientDashboard = () => {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle>Recent Prescriptions</CardTitle>
-                  <ButtonCustom variant="ghost" size="sm" onClick={() => setActiveTab("prescriptions")}>View All</ButtonCustom>
+                  <ButtonCustom 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setActiveTab("prescriptions")}
+                  >
+                    View All
+                  </ButtonCustom>
                 </div>
                 <CardDescription>Your prescribed medications</CardDescription>
               </CardHeader>
@@ -272,7 +305,14 @@ const PatientDashboard = () => {
                       </div>
                       <div className="text-right">
                         <p className="text-sm">{formatDate(prescription.date)}</p>
-                        <ButtonCustom size="sm" variant="outline" className="mt-1">Details</ButtonCustom>
+                        <ButtonCustom 
+                          size="sm" 
+                          variant="outline" 
+                          className="mt-1"
+                          onClick={() => setActiveTab("prescriptions")}
+                        >
+                          Details
+                        </ButtonCustom>
                       </div>
                     </div>
                   ))}
@@ -291,48 +331,66 @@ const PatientDashboard = () => {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle>Today's Medication</CardTitle>
-                <ButtonCustom variant="ghost" size="sm" onClick={() => setActiveTab("medication-schedule")}>View Full Schedule</ButtonCustom>
+                <ButtonCustom 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setActiveTab("medication-schedule")}
+                >
+                  View Full Schedule
+                </ButtonCustom>
               </div>
               <CardDescription>Remember to take your medications on time</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {sortedTimes.length > 0 ? (
-                  <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-4">
                     {sortedTimes.slice(0, 2).map((time) => (
-                      <div key={time} className="bg-slate-50 p-4 rounded-lg">
-                        <div className="flex items-center space-x-2 mb-3">
+                      <div key={time} className="space-y-3">
+                        <div className="flex items-center space-x-2">
                           <Clock className="h-5 w-5 text-primary" />
                           <h3 className="font-medium">{time}</h3>
                         </div>
                         
-                        <div className="space-y-2">
-                          {groupedMedications[time].map((medication) => (
-                            <div 
-                              key={medication.id} 
-                              className={`flex items-center justify-between p-2 rounded ${
-                                medication.taken ? "bg-green-50" : "bg-white"
-                              }`}
-                            >
-                              <div className="flex items-center space-x-3">
-                                <Pill className="h-4 w-4 text-primary" />
-                                <p className="text-sm font-medium">{medication.medication}</p>
+                        {groupedMedications[time].map((medication) => (
+                          <div 
+                            key={medication.id} 
+                            className={`flex items-center justify-between p-4 rounded-lg ${
+                              medication.taken ? "bg-[#F2FCE2]" : "bg-[#F9F9F9]"
+                            }`}
+                          >
+                            <div className="flex items-center space-x-4">
+                              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                                <Pill className="h-6 w-6 text-primary" />
                               </div>
-                              
-                              <div className="flex items-center">
-                                <Checkbox
-                                  id={`overview-med-${medication.id}`}
-                                  checked={medication.taken}
-                                  onCheckedChange={(checked) => 
-                                    handleMedicationTaken(medication.id, checked === true)
-                                  }
-                                  className="mr-2"
-                                />
-                                {medication.taken && <CheckCircle2 className="h-4 w-4 text-green-600" />}
+                              <div>
+                                <p className="font-medium text-lg">{medication.medication}</p>
+                                <p className="text-slate-600">{medication.instructions || "Take with food"}</p>
                               </div>
                             </div>
-                          ))}
-                        </div>
+                            
+                            <div className="flex items-center space-x-4">
+                              {medication.taken && (
+                                <div className="flex items-center text-green-600">
+                                  <CheckCircle2 className="h-5 w-5 mr-2" />
+                                  <span>Taken</span>
+                                </div>
+                              )}
+                              
+                              <button
+                                onClick={() => handleMedicationTaken(medication.id, !medication.taken)}
+                                className={`flex items-center gap-2 py-2 px-4 rounded-full ${
+                                  medication.taken 
+                                    ? "bg-white text-slate-700 border border-slate-200" 
+                                    : "bg-primary text-white"
+                                }`}
+                              >
+                                <Check className="h-4 w-4" />
+                                Mark as taken
+                              </button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     ))}
                   </div>
@@ -520,7 +578,7 @@ const PatientDashboard = () => {
                             </div>
                             <div>
                               <p className="font-medium text-lg">{medication.medication}</p>
-                              <p className="text-slate-600">Take with food</p>
+                              <p className="text-slate-600">{medication.instructions || "Take with food"}</p>
                             </div>
                           </div>
                           

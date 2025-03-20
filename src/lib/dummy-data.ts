@@ -85,6 +85,9 @@ export interface MedicationReminder {
   medication: string;
   time: string;
   taken: boolean;
+  instructions: string; // Added instructions
+  imageUrl?: string; // Added image URL
+  color?: string; // Added pill color for UI
 }
 
 // Generate dummy data
@@ -222,15 +225,45 @@ export const testResults: TestResult[] = Array.from({ length: 15 }, (_, i) => {
   };
 });
 
-// Generate medication reminders
+// Generate medication reminders with more detailed information
 export const medicationReminders: MedicationReminder[] = Array.from({ length: 12 }, (_, i) => {
   const patient = patients[i % patients.length];
+  const medications = [
+    "Lisinopril 10mg",
+    "Atorvastatin 20mg",
+    "Metformin 500mg",
+    "Levothyroxine 50mcg",
+    "Amlodipine 5mg",
+    "Metoprolol 25mg",
+    "Omeprazole 20mg",
+    "Simvastatin 40mg",
+    "Losartan 50mg",
+    "Albuterol Inhaler",
+    "Gabapentin 300mg",
+    "Hydrochlorothiazide 25mg"
+  ];
+  
+  const instructions = [
+    "Take with food",
+    "Take on empty stomach",
+    "Take before meal",
+    "Take after meal",
+    "Take with water",
+    "Do not take with dairy products",
+    "Take at the same time each day"
+  ];
+  
+  const times = ["06:00", "08:00", "12:00", "14:00", "18:00", "20:00", "22:00"];
+  const colors = ["blue", "red", "orange", "green", "purple", "pink", "teal"];
+  
   return {
     id: `mr${i + 1}`,
     patientId: patient.id,
-    medication: faker.commerce.productName(),
-    time: `${faker.number.int({ min: 6, max: 22 })}:${faker.helpers.arrayElement(['00', '30'])}`,
+    medication: medications[i % medications.length],
+    time: times[i % times.length],
     taken: faker.datatype.boolean(),
+    instructions: instructions[i % instructions.length],
+    color: colors[i % colors.length]
   };
 });
 
