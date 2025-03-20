@@ -5,9 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { ButtonCustom } from "@/components/ui/button-custom";
-import { Calendar, User, FileText, MessageSquare, TestTube, Pill, ClipboardList } from "lucide-react";
+import { Calendar, User, FileText, MessageSquare, TestTube, Pill, ClipboardList, Copy } from "lucide-react";
 import { findPatientById, getPatientAppointments, getPatientPrescriptions, getPatientTests } from "@/lib/dummy-data";
 import { formatDate } from "@/lib/utils";
+import { toast } from "@/components/ui/use-toast";
 
 const PatientProfile = () => {
   const { patientId } = useParams<{ patientId: string }>();
@@ -18,6 +19,16 @@ const PatientProfile = () => {
   const appointments = getPatientAppointments(patientId || "p1");
   const prescriptions = getPatientPrescriptions(patientId || "p1");
   const tests = getPatientTests(patientId || "p1");
+
+  const copyBlockchainId = () => {
+    if (patient?.blockchainId) {
+      navigator.clipboard.writeText(patient.blockchainId);
+      toast({
+        title: "Blockchain ID copied",
+        description: "Your blockchain ID has been copied to clipboard",
+      });
+    }
+  };
 
   if (!patient) {
     return (
@@ -50,6 +61,25 @@ const PatientProfile = () => {
             <p className="text-slate-600">Patient ID: {patient.id}</p>
           </div>
         </div>
+        {patient?.blockchainId && (
+          <div className="bg-slate-50 p-3 rounded-md border border-slate-200 mb-4 animate-fade-in">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm font-medium text-slate-700 mb-1">Your Blockchain ID</p>
+                <p className="text-sm font-mono bg-white p-1 rounded border border-slate-200">
+                  {patient.blockchainId}
+                </p>
+                <p className="text-xs text-slate-500 mt-1">
+                  Doctors can search for your records using this ID
+                </p>
+              </div>
+              <ButtonCustom size="sm" variant="outline" onClick={copyBlockchainId}>
+                <Copy className="h-4 w-4 mr-2" />
+                Copy ID
+              </ButtonCustom>
+            </div>
+          </div>
+        )}
       </div>
 
       <Tabs defaultValue="profile" className="space-y-8" onValueChange={setActiveTab}>

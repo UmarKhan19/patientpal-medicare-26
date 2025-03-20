@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { ButtonCustom } from '@/components/ui/button-custom';
-import { Search, Calendar, UserCircle, CheckCircle } from 'lucide-react';
+import { Search, Calendar, UserCircle, CheckCircle, Stethoscope } from 'lucide-react';
 import { doctors } from '@/lib/dummy-data';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
@@ -14,6 +14,20 @@ import { toast } from '@/components/ui/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const specialties = [...new Set(doctors.map(doctor => doctor.specialty))];
+
+// Map generic terms to specialty keywords
+const specialtyKeywords: Record<string, string[]> = {
+  'Cardiologist': ['heart', 'cardiac', 'chest pain', 'cardiovascular'],
+  'Dermatologist': ['skin', 'rash', 'acne', 'eczema'],
+  'Orthopedic': ['bone', 'joint', 'knee', 'fracture', 'back pain'],
+  'ENT': ['ear', 'nose', 'throat', 'hearing', 'sinus', 'tonsil'],
+  'Ophthalmologist': ['eye', 'vision', 'glasses', 'cataract'],
+  'Neurologist': ['brain', 'nerve', 'headache', 'migraine'],
+  'Psychiatrist': ['mental', 'anxiety', 'depression', 'stress'],
+  'Gynecologist': ['womens health', 'pregnancy', 'menstrual'],
+  'Pediatrician': ['child', 'kid', 'baby', 'children'],
+  'Urologist': ['urinary', 'bladder', 'kidney', 'prostate'],
+};
 
 const appointmentSchema = z.object({
   doctorId: z.string({ required_error: "Please select a doctor" }),
@@ -43,11 +57,30 @@ const DoctorSearch = () => {
 
   useEffect(() => {
     if (searchTerm.trim().length > 0) {
-      // Filter doctors by specialty or name
-      const results = doctors.filter(doctor => 
-        doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        doctor.name.toLowerCase().includes(searchTerm.toLowerCase())
+      const lowerSearchTerm = searchTerm.toLowerCase();
+      
+      // First, check if it matches a specialty directly
+      let results = doctors.filter(doctor => 
+        doctor.specialty.toLowerCase().includes(lowerSearchTerm) ||
+        doctor.name.toLowerCase().includes(lowerSearchTerm)
       );
+      
+      // If no direct matches, check for generic terms
+      if (results.length === 0) {
+        // Check each specialty's keywords
+        const matchingSpecialties = Object.entries(specialtyKeywords).filter(([specialty, keywords]) => 
+          keywords.some(keyword => lowerSearchTerm.includes(keyword))
+        ).map(([specialty]) => specialty);
+        
+        if (matchingSpecialties.length > 0) {
+          results = doctors.filter(doctor => 
+            matchingSpecialties.some(specialty => 
+              doctor.specialty.toLowerCase().includes(specialty.toLowerCase())
+            )
+          );
+        }
+      }
+      
       setSearchResults(results);
     } else {
       setSearchResults([]);
@@ -110,7 +143,7 @@ const DoctorSearch = () => {
       <form onSubmit={handleSearch} className="relative mb-4">
         <Input
           type="text"
-          placeholder="Search for specialists (e.g., Cardiologist, ENT, etc.) or doctor name..."
+          placeholder="Search for specialists or describe your health concern (e.g., ear problem)..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pr-10"
@@ -164,10 +197,10 @@ const DoctorSearch = () => {
 
         {!searchTerm && (
           <div className="text-center p-6 bg-slate-50 rounded-lg">
-            <Search className="h-12 w-12 mx-auto text-slate-300 mb-2" />
+            <Stethoscope className="h-12 w-12 mx-auto text-slate-300 mb-2" />
             <h3 className="text-lg font-medium mb-1">Find the Right Specialist</h3>
             <p className="text-slate-600">
-              Search for a specialist type (like "ear specialist" or "ENT") or enter a doctor's name.
+              Search for a health concern (like "ear problem" or "heart issue") or enter a doctor's name.
             </p>
           </div>
         )}
