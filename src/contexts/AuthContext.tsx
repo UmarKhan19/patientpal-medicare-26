@@ -5,7 +5,7 @@ import { toast } from "@/components/ui/use-toast";
 import { doctors, patients } from "@/lib/dummy-data";
 
 // Define user type
-export type UserRole = "doctor" | "patient";
+export type UserRole = "doctor" | "patient" | "lab";
 
 export interface User {
   id: string;
@@ -50,6 +50,14 @@ const USERS = [
     email: "patient@example.com",
     password: "password", 
     role: "patient" as UserRole,
+    picture: null
+  },
+  {
+    id: "l1",
+    name: "Lab Test",
+    email: "lab@example.com",
+    password: "password", 
+    role: "lab" as UserRole,
     picture: null
   },
   // Then include all the users from dummy data

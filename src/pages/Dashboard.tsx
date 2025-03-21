@@ -3,11 +3,11 @@ import { ReactNode, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, UserRole } from "@/contexts/AuthContext";
 
 interface DashboardProps {
   children: ReactNode;
-  requiredRole?: "doctor" | "patient" | "lab";
+  requiredRole?: UserRole;
 }
 
 const Dashboard = ({ children, requiredRole }: DashboardProps) => {
