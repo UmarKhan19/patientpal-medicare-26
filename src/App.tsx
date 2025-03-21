@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ICPProvider } from "@/contexts/ICPContext";
 import Index from "./pages/Index";
@@ -24,24 +24,22 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <ICPProvider>
-          <AuthProvider>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/signin" element={<SignIn />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/doctor" element={<DoctorDashboard />} />
-              <Route path="/doctor/patient/:patientId" element={<PatientProfile />} />
-              <Route path="/patient" element={<PatientDashboard />} />
-              <Route path="/patient/doctor/:doctorId" element={<DoctorProfile />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/lab" element={<LabDashboard />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AuthProvider>
-        </ICPProvider>
-      </BrowserRouter>
+      <ICPProvider>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/doctor" element={<DoctorDashboard />} />
+            <Route path="/doctor/patient/:patientId" element={<PatientProfile />} />
+            <Route path="/patient" element={<PatientDashboard />} />
+            <Route path="/patient/doctor/:doctorId" element={<DoctorProfile />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/lab" element={<LabDashboard />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
+      </ICPProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
