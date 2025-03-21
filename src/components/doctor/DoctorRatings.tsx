@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { formatDate } from "@/lib/utils";
+import DoctorReviewForm from "@/components/patient/DoctorReviewForm";
 
 interface Review {
   id: string;
@@ -19,13 +20,23 @@ interface Review {
 
 interface DoctorRatingsProps {
   doctorId: string;
+  doctorName?: string;
   averageRating: number;
   totalReviews: number;
   reviews: Review[];
+  showReviewForm?: boolean;
 }
 
-const DoctorRatings = ({ doctorId, averageRating, totalReviews, reviews }: DoctorRatingsProps) => {
+const DoctorRatings = ({ 
+  doctorId, 
+  doctorName = "", 
+  averageRating, 
+  totalReviews, 
+  reviews,
+  showReviewForm = false
+}: DoctorRatingsProps) => {
   const [reviewsList, setReviewsList] = useState<Review[]>(reviews);
+  const [showForm, setShowForm] = useState(false);
 
   const handleHelpful = (reviewId: string) => {
     setReviewsList(
@@ -41,6 +52,22 @@ const DoctorRatings = ({ doctorId, averageRating, totalReviews, reviews }: Docto
         return review;
       })
     );
+  };
+
+  const handleNewReview = (data: { rating: number; comment: string }) => {
+    // In a real app, this would send the review to an API
+    const newReview: Review = {
+      id: `review-${Date.now()}`,
+      patientName: "You", // In a real app, this would be the current user's name
+      rating: data.rating,
+      comment: data.comment,
+      date: new Date().toISOString(),
+      helpfulCount: 0,
+      isHelpful: false
+    };
+    
+    setReviewsList([newReview, ...reviewsList]);
+    setShowForm(false);
   };
 
   const renderStars = (rating: number) => {
@@ -69,6 +96,27 @@ const DoctorRatings = ({ doctorId, averageRating, totalReviews, reviews }: Docto
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {showReviewForm && !showForm && (
+          <div className="mb-6">
+            <ButtonCustom 
+              onClick={() => setShowForm(true)}
+              className="w-full"
+            >
+              Write a Review
+            </ButtonCustom>
+          </div>
+        )}
+
+        {showForm && (
+          <div className="mb-6">
+            <DoctorReviewForm 
+              doctorId={doctorId}
+              doctorName={doctorName}
+              onReviewSubmitted={handleNewReview}
+            />
+          </div>
+        )}
+
         {reviewsList.length > 0 ? (
           <div className="space-y-6">
             {reviewsList.map((review) => (

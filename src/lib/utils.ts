@@ -1,3 +1,4 @@
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -150,4 +151,21 @@ export function filterBySearchText<T>(
       return false;
     });
   });
+}
+
+// Converts a price number to a formatted price string (e.g., $100)
+export function formatPrice(price: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(price);
+}
+
+// Calculates the average rating from an array of ratings
+export function calculateAverageRating(ratings: number[]): number {
+  if (!ratings.length) return 0;
+  const sum = ratings.reduce((total, rating) => total + rating, 0);
+  return parseFloat((sum / ratings.length).toFixed(1));
 }

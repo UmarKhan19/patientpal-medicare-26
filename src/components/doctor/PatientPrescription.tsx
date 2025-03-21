@@ -42,9 +42,10 @@ interface PatientPrescriptionProps {
   patientId: string;
   patientName: string;
   existingPrescription?: PrescriptionFormValues;
+  onSave?: (data: PrescriptionFormValues) => void;
 }
 
-const PatientPrescription = ({ patientId, patientName, existingPrescription }: PatientPrescriptionProps) => {
+const PatientPrescription = ({ patientId, patientName, existingPrescription, onSave }: PatientPrescriptionProps) => {
   const defaultValues: PrescriptionFormValues = existingPrescription || {
     symptoms: "",
     diagnosis: "",
@@ -96,7 +97,11 @@ const PatientPrescription = ({ patientId, patientName, existingPrescription }: P
 
   const onSubmit = (data: PrescriptionFormValues) => {
     console.log("Prescription data:", data);
-    // Here you would typically send this data to your API
+    
+    if (onSave) {
+      onSave(data);
+    }
+    
     toast.success("Prescription saved successfully");
   };
 
