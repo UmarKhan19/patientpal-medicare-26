@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Check, ChevronsUpDown, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
@@ -36,9 +36,10 @@ const DoctorFilter = ({ onFilterChange }: DoctorFilterProps) => {
   const [priceRange, setPriceRange] = useState<[number, number]>([minPrice, maxPrice]);
   const [rating, setRating] = useState<number | null>(null);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [prevActiveFilters, setPrevActiveFilters] = useState<string[]>([]);
 
-  useEffect(() => {
-    // Update active filters list
+  // Memoize the update of active filters to prevent infinite loops
+  const updateActiveFilters = useCallback(() => {
     const newActiveFilters: string[] = [];
     if (specialty) newActiveFilters.push(`Specialty: ${specialty}`);
     if (gender) newActiveFilters.push(`Gender: ${gender}`);
@@ -46,21 +47,29 @@ const DoctorFilter = ({ onFilterChange }: DoctorFilterProps) => {
       newActiveFilters.push(`Price: ${formatPrice(priceRange[0])} - ${formatPrice(priceRange[1])}`);
     if (rating) newActiveFilters.push(`Min Rating: ${rating}★`);
     
-    setActiveFilters(newActiveFilters);
-    
-    // Notify parent component with the updated filters
-    onFilterChange({
-      specialty,
-      gender,
-      priceRange,
-      rating
-    });
-    
-    // Show toast if filters are applied or changed
-    if (newActiveFilters.length > 0 && JSON.stringify(newActiveFilters) !== JSON.stringify(activeFilters)) {
-      toast.success("Filters applied successfully");
+    if (JSON.stringify(newActiveFilters) !== JSON.stringify(prevActiveFilters)) {
+      setActiveFilters(newActiveFilters);
+      setPrevActiveFilters(newActiveFilters);
+      
+      // Notify parent component with the updated filters
+      onFilterChange({
+        specialty,
+        gender,
+        priceRange,
+        rating
+      });
+      
+      // Show toast if filters are applied or changed
+      if (newActiveFilters.length > 0) {
+        toast.success("Filters applied successfully");
+      }
     }
-  }, [specialty, gender, priceRange, rating, onFilterChange, activeFilters]);
+  }, [specialty, gender, priceRange, rating, onFilterChange, prevActiveFilters]);
+
+  // Use useEffect with proper dependencies
+  useEffect(() => {
+    updateActiveFilters();
+  }, [updateActiveFilters]);
 
   const handlePriceChange = (value: number[]) => {
     if (value.length >= 2) {
