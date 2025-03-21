@@ -1,6 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Actor } from '@dfinity/agent';
+import { ActorSubclass } from '@dfinity/agent';
 import { createActor } from '@/services/icp/actor';
 import { idlFactory } from '@/services/icp/idl/test.did';
 import { ICP_CONFIG } from '@/services/icp/config';
@@ -8,10 +8,15 @@ import { MedicalTest } from '@/types/medical-test';
 
 // Create the tests actor
 const getTestsActor = async () => {
-  return createActor(idlFactory, {
-    canisterId: ICP_CONFIG.canisterIds.testsCanister,
-    host: ICP_CONFIG.network
-  });
+  try {
+    return await createActor<ActorSubclass<any>>(
+      ICP_CONFIG.canisterIds.testsCanister,
+      idlFactory
+    );
+  } catch (error) {
+    console.error("Failed to create tests actor:", error);
+    throw error;
+  }
 };
 
 // Get all tests for a patient
@@ -19,8 +24,13 @@ export const useGetTestsByPatient = (patientId: string) => {
   return useQuery({
     queryKey: ['tests', 'patient', patientId],
     queryFn: async () => {
-      const actor = await getTestsActor();
-      return actor.getTestsByPatient(patientId);
+      try {
+        const actor = await getTestsActor();
+        return actor.getTestsByPatient(patientId);
+      } catch (error) {
+        console.error("Failed to get tests by patient:", error);
+        throw error;
+      }
     },
     enabled: !!patientId,
   });
@@ -31,8 +41,13 @@ export const useGetTestsByDoctor = (doctorId: string) => {
   return useQuery({
     queryKey: ['tests', 'doctor', doctorId],
     queryFn: async () => {
-      const actor = await getTestsActor();
-      return actor.getTestsByDoctor(doctorId);
+      try {
+        const actor = await getTestsActor();
+        return actor.getTestsByDoctor(doctorId);
+      } catch (error) {
+        console.error("Failed to get tests by doctor:", error);
+        throw error;
+      }
     },
     enabled: !!doctorId,
   });
@@ -43,8 +58,13 @@ export const useGetTest = (testId: string) => {
   return useQuery({
     queryKey: ['tests', testId],
     queryFn: async () => {
-      const actor = await getTestsActor();
-      return actor.getTest(testId);
+      try {
+        const actor = await getTestsActor();
+        return actor.getTest(testId);
+      } catch (error) {
+        console.error("Failed to get test:", error);
+        throw error;
+      }
     },
     enabled: !!testId,
   });
@@ -56,8 +76,13 @@ export const useCreateTest = () => {
   
   return useMutation({
     mutationFn: async (test: MedicalTest) => {
-      const actor = await getTestsActor();
-      return actor.createTest(test);
+      try {
+        const actor = await getTestsActor();
+        return actor.createTest(test);
+      } catch (error) {
+        console.error("Failed to create test:", error);
+        throw error;
+      }
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tests', 'patient', variables.patientId] });
@@ -72,8 +97,13 @@ export const useUpdateTest = () => {
   
   return useMutation({
     mutationFn: async (test: MedicalTest) => {
-      const actor = await getTestsActor();
-      return actor.updateTest(test);
+      try {
+        const actor = await getTestsActor();
+        return actor.updateTest(test);
+      } catch (error) {
+        console.error("Failed to update test:", error);
+        throw error;
+      }
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tests', variables.id] });
@@ -89,10 +119,15 @@ export const useDeleteTest = () => {
   
   return useMutation({
     mutationFn: async (testId: string) => {
-      const actor = await getTestsActor();
-      return actor.deleteTest(testId);
+      try {
+        const actor = await getTestsActor();
+        return actor.deleteTest(testId);
+      } catch (error) {
+        console.error("Failed to delete test:", error);
+        throw error;
+      }
     },
-    onSuccess: (data, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tests'] });
     },
   });
@@ -103,8 +138,13 @@ export const useGetTestsByStatus = (status: string) => {
   return useQuery({
     queryKey: ['tests', 'status', status],
     queryFn: async () => {
-      const actor = await getTestsActor();
-      return actor.getTestsByStatus(status);
+      try {
+        const actor = await getTestsActor();
+        return actor.getTestsByStatus(status);
+      } catch (error) {
+        console.error("Failed to get tests by status:", error);
+        throw error;
+      }
     },
     enabled: !!status,
   });
