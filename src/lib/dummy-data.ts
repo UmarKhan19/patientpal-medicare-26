@@ -7,6 +7,10 @@ export interface Doctor {
   specialty: string;
   location: string;
   picture?: string | null;
+  gender?: string;
+  consultationFee?: number;
+  rating?: number;
+  reviewCount?: number;
 }
 
 export interface Patient {
@@ -148,6 +152,10 @@ export const doctors: Doctor[] = Array.from({ length: 5 }, (_, i) => ({
   specialty: faker.person.jobType(),
   location: faker.location.city(),
   picture: faker.image.avatar(),
+  gender: faker.helpers.arrayElement(['Male', 'Female']),
+  consultationFee: faker.number.int({ min: 50, max: 300 }),
+  rating: faker.number.float({ min: 3, max: 5, precision: 0.1 }),
+  reviewCount: faker.number.int({ min: 5, max: 200 }),
 }));
 
 // Blood type options since faker.person.bloodType() doesn't exist

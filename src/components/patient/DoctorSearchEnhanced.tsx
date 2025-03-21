@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { ButtonCustom } from '@/components/ui/button-custom';
@@ -68,23 +67,18 @@ const DoctorSearchEnhanced = ({ onTabChange }: { onTabChange?: (tab: string) => 
     },
   });
 
-  // Handle search and filter
   useEffect(() => {
     let results = [...doctors];
     
-    // Apply search term
     if (searchTerm.trim().length > 0) {
       const lowerSearchTerm = searchTerm.toLowerCase();
       
-      // Check if it matches a specialty directly
       results = results.filter(doctor => 
         doctor.specialty.toLowerCase().includes(lowerSearchTerm) ||
         doctor.name.toLowerCase().includes(lowerSearchTerm)
       );
       
-      // If no direct matches, check for generic terms
       if (results.length === 0) {
-        // Check each specialty's keywords
         const matchingSpecialties = Object.entries(specialtyKeywords).filter(([specialty, keywords]) => 
           keywords.some(keyword => lowerSearchTerm.includes(keyword))
         ).map(([specialty]) => specialty);
@@ -102,31 +96,26 @@ const DoctorSearchEnhanced = ({ onTabChange }: { onTabChange?: (tab: string) => 
     setSearchResults(results);
   }, [searchTerm]);
 
-  // Apply filters to search results
   useEffect(() => {
     let filtered = [...searchResults];
     
-    // Apply specialty filter
     if (filterOptions.specialty) {
       filtered = filtered.filter(doctor => 
         doctor.specialty === filterOptions.specialty
       );
     }
     
-    // Apply gender filter
     if (filterOptions.gender) {
       filtered = filtered.filter(doctor => 
         doctor.gender === filterOptions.gender
       );
     }
     
-    // Apply price range filter
     filtered = filtered.filter(doctor => {
       const fee = doctor.consultationFee || 100;
       return fee >= filterOptions.priceRange[0] && fee <= filterOptions.priceRange[1];
     });
     
-    // Apply rating filter
     if (filterOptions.rating) {
       filtered = filtered.filter(doctor => 
         (doctor.rating || 0) >= (filterOptions.rating || 0)
@@ -138,7 +127,6 @@ const DoctorSearchEnhanced = ({ onTabChange }: { onTabChange?: (tab: string) => 
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Already handled by the useEffect
   };
 
   const handleFilterChange = (filters: FilterOptions) => {
@@ -164,26 +152,22 @@ const DoctorSearchEnhanced = ({ onTabChange }: { onTabChange?: (tab: string) => 
     setBookingOpen(false);
     setSelectedDoctor(null);
     
-    // Switch to appointments tab if the callback is provided
     if (onTabChange) {
       onTabChange("appointments");
     }
   };
 
-  // Generate available times for the appointment
   const availableTimes = Array.from({ length: 8 }, (_, i) => {
-    const hour = i + 9; // Start at 9 AM
+    const hour = i + 9;
     return `${hour}:00 ${hour < 12 ? 'AM' : 'PM'}`;
   });
 
-  // Generate available dates (next 14 days)
   const availableDates = Array.from({ length: 14 }, (_, i) => {
     const date = new Date();
-    date.setDate(date.getDate() + i + 1); // Start from tomorrow
+    date.setDate(date.getDate() + i + 1);
     return date.toISOString().split('T')[0];
   });
 
-  // Common appointment types
   const appointmentTypes = [
     "Check-up",
     "Consultation",

@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ButtonCustom } from "@/components/ui/button-custom";
-import { Clipboard, FilePlus, FileText, Flask, HeartPulse, History, Plus } from "lucide-react";
+import { Clipboard, FilePlus, FileText, Beaker, HeartPulse, History, Plus } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import PatientPrescription from "./PatientPrescription";
 
@@ -85,7 +84,7 @@ const PatientMedicalHistory = ({
             <HeartPulse className="h-4 w-4 mr-2" /> Vitals
           </TabsTrigger>
           <TabsTrigger value="tests">
-            <Flask className="h-4 w-4 mr-2" /> Tests
+            <Beaker className="h-4 w-4 mr-2" /> Tests
           </TabsTrigger>
         </TabsList>
 
@@ -154,7 +153,7 @@ const PatientMedicalHistory = ({
                     {medicalTests.slice(0, 3).map(test => (
                       <div key={test.id} className="border-b pb-2 last:border-b-0">
                         <div className="flex items-center">
-                          <Flask className="h-4 w-4 mr-2 text-slate-500" />
+                          <Beaker className="h-4 w-4 mr-2 text-slate-500" />
                           <div>
                             <p className="text-sm font-medium">{test.name}</p>
                             <p className="text-xs text-slate-500">{formatDate(test.date)}</p>
@@ -339,7 +338,7 @@ const PatientMedicalHistory = ({
                     <CardHeader className="pb-2">
                       <CardTitle className="text-lg flex justify-between items-center">
                         <div className="flex items-center">
-                          <Flask className="h-5 w-5 mr-2 text-primary" />
+                          <Beaker className="h-5 w-5 mr-2 text-primary" />
                           {test.name}
                         </div>
                         <span className={`text-sm px-2 py-1 rounded-full ${
@@ -367,7 +366,7 @@ const PatientMedicalHistory = ({
               </div>
             ) : (
               <div className="text-center py-8 bg-slate-50 rounded-lg">
-                <Flask className="h-12 w-12 mx-auto text-slate-300 mb-2" />
+                <Beaker className="h-12 w-12 mx-auto text-slate-300 mb-2" />
                 <h3 className="text-lg font-medium mb-1">No Medical Tests</h3>
                 <p className="text-slate-600">
                   No tests have been ordered for this patient yet.
@@ -382,4 +381,3 @@ const PatientMedicalHistory = ({
 };
 
 export default PatientMedicalHistory;
-
