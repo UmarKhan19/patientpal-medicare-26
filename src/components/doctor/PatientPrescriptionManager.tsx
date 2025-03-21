@@ -6,8 +6,10 @@ import { FileText, Plus, FileSearch } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import PatientPrescriptionForm from "./PatientPrescriptionForm";
 import { toast } from "sonner";
+import { Prescription } from "@/types/prescription";
 
-interface Prescription {
+// Local interface for the existing prescriptions structure
+interface PrescriptionDisplay {
   id: string;
   date: string;
   symptoms: string;
@@ -33,7 +35,7 @@ interface Prescription {
 interface PatientPrescriptionManagerProps {
   patientId: string;
   patientName: string;
-  prescriptions: Prescription[];
+  prescriptions: PrescriptionDisplay[];
   onAddPrescription?: (prescription: any) => void;
 }
 
@@ -44,7 +46,7 @@ const PatientPrescriptionManager = ({
   onAddPrescription,
 }: PatientPrescriptionManagerProps) => {
   const [isAddingPrescription, setIsAddingPrescription] = useState(false);
-  const [viewingPrescription, setViewingPrescription] = useState<Prescription | null>(null);
+  const [viewingPrescription, setViewingPrescription] = useState<PrescriptionDisplay | null>(null);
 
   const handleNewPrescription = (data: any) => {
     console.log("New prescription data:", data);
@@ -64,7 +66,7 @@ const PatientPrescriptionManager = ({
     toast.success("Prescription added successfully");
   };
 
-  const viewPrescription = (prescription: Prescription) => {
+  const viewPrescription = (prescription: PrescriptionDisplay) => {
     setViewingPrescription(prescription);
     setIsAddingPrescription(false);
   };

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +8,7 @@ import { formatDate } from "@/lib/utils";
 import PatientPrescriptionForm from "./PatientPrescriptionForm";
 import PatientPrescriptionManager from "./PatientPrescriptionManager";
 import { toast } from "sonner";
+import { Prescription, Medication, Test } from "@/types/prescription";
 
 // Types
 interface MedicalTest {
@@ -17,7 +19,8 @@ interface MedicalTest {
   status: string;
 }
 
-interface Prescription {
+// Using local interface to avoid conflicts with imported Prescription type
+interface DisplayPrescription {
   id: string;
   date: string;
   symptoms: string;
@@ -49,7 +52,7 @@ interface VitalRecord {
 interface PatientMedicalHistoryProps {
   patientId: string;
   patientName: string;
-  prescriptions: Prescription[];
+  prescriptions: DisplayPrescription[];
   vitalRecords: VitalRecord[];
   medicalTests: MedicalTest[];
 }
@@ -62,8 +65,9 @@ const PatientMedicalHistory = ({
   medicalTests,
 }: PatientMedicalHistoryProps) => {
   const [activeTab, setActiveTab] = useState("overview");
-  const [localPrescriptions, setLocalPrescriptions] = useState(prescriptions);
+  const [localPrescriptions, setLocalPrescriptions] = useState<DisplayPrescription[]>(prescriptions);
   const [showVitalForm, setShowVitalForm] = useState(false);
+  const [isAddingPrescription, setIsAddingPrescription] = useState(false);
   
   const latestVitals = vitalRecords.length > 0 ? vitalRecords[0] : null;
   
@@ -206,7 +210,7 @@ const PatientMedicalHistory = ({
           <PatientPrescriptionManager 
             patientId={patientId}
             patientName={patientName}
-            prescriptions={localPrescriptions}
+            prescriptions={localPrescriptions as any}
             onAddPrescription={handleNewPrescription}
           />
         </TabsContent>

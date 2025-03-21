@@ -12,6 +12,41 @@ import { toast } from "@/components/ui/use-toast";
 import PatientPrescriptionManager from "@/components/doctor/PatientPrescriptionManager";
 import { useAuth } from "@/contexts/AuthContext";
 
+interface DummyPrescription {
+  id: string;
+  patientId: string;
+  doctorId: string;
+  medication: string;
+  dosage: string;
+  instructions: string;
+  date: Date;
+  issued: Date;
+  doctor: string;
+}
+
+interface AppPrescription {
+  id: string;
+  date: string;
+  symptoms: string;
+  diagnosis: string;
+  height: string;
+  weight: string;
+  bloodPressure?: string;
+  allergies?: string;
+  notes?: string;
+  medications: {
+    name: string;
+    dosage: string;
+    frequency: string;
+    duration: string;
+    instructions?: string;
+  }[];
+  tests: {
+    name: string;
+    instructions?: string;
+  }[];
+}
+
 const PatientProfile = () => {
   const { patientId } = useParams<{ patientId: string }>();
   const [activeTab, setActiveTab] = useState("profile");
@@ -21,7 +56,27 @@ const PatientProfile = () => {
 
   const patient = findPatientById(patientId || "p1");
   const appointments = getPatientAppointments(patientId || "p1");
-  const [prescriptions, setPrescriptions] = useState(getPatientPrescriptions(patientId || "p1"));
+  
+  const dummyPrescriptions = getPatientPrescriptions(patientId || "p1");
+  const [prescriptions, setPrescriptions] = useState<AppPrescription[]>(
+    dummyPrescriptions.map((p: DummyPrescription) => ({
+      id: p.id,
+      date: p.date.toISOString(),
+      symptoms: "Symptoms not recorded",
+      diagnosis: "Diagnosis not recorded",
+      height: "170",
+      weight: "70",
+      medications: [{
+        name: p.medication,
+        dosage: p.dosage,
+        frequency: "As needed",
+        duration: "As directed",
+        instructions: p.instructions
+      }],
+      tests: []
+    }))
+  );
+  
   const tests = getPatientTests(patientId || "p1");
 
   const copyBlockchainId = () => {
@@ -34,7 +89,7 @@ const PatientProfile = () => {
     }
   };
 
-  const handleAddPrescription = (newPrescription: any) => {
+  const handleAddPrescription = (newPrescription: AppPrescription) => {
     setPrescriptions([newPrescription, ...prescriptions]);
   };
 
@@ -236,9 +291,16 @@ const PatientProfile = () => {
                   {prescriptions.map((prescription) => (
                     <div key={prescription.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                       <div>
-                        <p className="font-medium">{prescription.medication} ({prescription.dosage})</p>
-                        <p className="text-sm text-slate-600">Instructions: {prescription.instructions}</p>
-                        <p className="text-xs text-slate-500">Prescribed by {prescription.doctor} on {formatDate(prescription.issued)}</p>
+                        <p className="font-medium">
+                          {prescription.medications[0]?.name || "Medication"} 
+                          ({prescription.medications[0]?.dosage || "N/A"})
+                        </p>
+                        <p className="text-sm text-slate-600">
+                          Instructions: {prescription.medications[0]?.instructions || "None"}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          Prescribed on {formatDate(prescription.date)}
+                        </p>
                       </div>
                       <ButtonCustom variant="outline" size="sm">View Details</ButtonCustom>
                     </div>
