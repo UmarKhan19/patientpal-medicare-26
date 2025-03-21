@@ -31,7 +31,13 @@ const Navbar = () => {
     e.preventDefault();
     if (user) {
       // If user is logged in, redirect to the appropriate dashboard
-      navigate(user.role === 'doctor' ? "/doctor" : user.role === 'lab' ? "/lab" : "/patient");
+      if (user.role === 'doctor') {
+        navigate("/doctor");
+      } else if (user.role === 'lab') {
+        navigate("/lab");
+      } else {
+        navigate("/patient");
+      }
     } else {
       // If not logged in, redirect to landing page
       navigate("/");
@@ -60,7 +66,11 @@ const Navbar = () => {
                 className="flex items-center space-x-2"
                 asChild
               >
-                <Link to={user.role === 'doctor' ? "/doctor" : user.role === 'lab' ? "/lab" : "/patient"}>
+                <Link to={
+                  user.role === 'doctor' ? "/doctor" : 
+                  user.role === 'lab' ? "/lab" : 
+                  "/patient"
+                }>
                   <UserCircle size={16} />
                   <span>Dashboard</span>
                 </Link>
@@ -120,7 +130,11 @@ const Navbar = () => {
               <>
                 <li>
                   <Link
-                    to={user.role === 'doctor' ? "/doctor" : user.role === 'lab' ? "/lab" : "/patient"}
+                    to={
+                      user.role === 'doctor' ? "/doctor" : 
+                      user.role === 'lab' ? "/lab" : 
+                      "/patient"
+                    }
                     className="block py-2 text-sm font-medium text-primary"
                     onClick={() => setIsMenuOpen(false)}
                   >

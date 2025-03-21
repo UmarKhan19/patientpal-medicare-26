@@ -1,13 +1,13 @@
 
 import { ReactNode, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardProps {
   children: ReactNode;
-  requiredRole?: "doctor" | "patient";
+  requiredRole?: "doctor" | "patient" | "lab";
 }
 
 const Dashboard = ({ children, requiredRole }: DashboardProps) => {
@@ -17,11 +17,21 @@ const Dashboard = ({ children, requiredRole }: DashboardProps) => {
   useEffect(() => {
     if (!loading && !user) {
       navigate("/signin");
-      return;
-    }
-
-    if (!loading && user && requiredRole && user.role !== requiredRole) {
-      navigate(user.role === "doctor" ? "/doctor" : "/patient");
+    } else if (!loading && user && requiredRole && user.role !== requiredRole) {
+      // Redirect if user doesn't have the required role
+      switch (user.role) {
+        case "doctor":
+          navigate("/doctor");
+          break;
+        case "patient":
+          navigate("/patient");
+          break;
+        case "lab":
+          navigate("/lab");
+          break;
+        default:
+          navigate("/");
+      }
     }
   }, [user, loading, navigate, requiredRole]);
 
@@ -33,13 +43,13 @@ const Dashboard = ({ children, requiredRole }: DashboardProps) => {
     );
   }
 
+  if (!user) return null;
+
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-grow pt-24 pb-12 px-6">
-        <div className="max-w-7xl mx-auto">
-          {children}
-        </div>
+      <main className="flex-grow pt-24 pb-16 px-4 md:px-8 lg:px-12 max-w-7xl mx-auto w-full">
+        {children}
       </main>
       <Footer />
     </div>
