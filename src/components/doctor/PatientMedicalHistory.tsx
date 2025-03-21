@@ -1,11 +1,11 @@
-
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ButtonCustom } from "@/components/ui/button-custom";
-import { Clipboard, FilePlus, FileText, Beaker, HeartPulse, History, Plus } from "lucide-react";
+import { Clipboard, FileText, Beaker, HeartPulse, History, Plus } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import PatientPrescription from "./PatientPrescription";
+import PatientPrescriptionForm from "./PatientPrescriptionForm";
+import PatientPrescriptionManager from "./PatientPrescriptionManager";
 import { toast } from "sonner";
 
 // Types
@@ -62,16 +62,19 @@ const PatientMedicalHistory = ({
   medicalTests,
 }: PatientMedicalHistoryProps) => {
   const [activeTab, setActiveTab] = useState("overview");
-  const [isAddingPrescription, setIsAddingPrescription] = useState(false);
+  const [localPrescriptions, setLocalPrescriptions] = useState(prescriptions);
   const [showVitalForm, setShowVitalForm] = useState(false);
   
   const latestVitals = vitalRecords.length > 0 ? vitalRecords[0] : null;
   
   const handleNewPrescription = (data: any) => {
-    console.log("New prescription data:", data);
-    // In a real app, this would send the data to an API and update the prescriptions list
-    setIsAddingPrescription(false);
-    // Mock update to show success
+    const newPrescription = {
+      ...data,
+      id: `presc_${Date.now()}`,
+      date: new Date().toISOString(),
+    };
+    
+    setLocalPrescriptions([newPrescription, ...localPrescriptions]);
     toast.success("Prescription added successfully");
   };
 
@@ -200,94 +203,12 @@ const PatientMedicalHistory = ({
         </TabsContent>
 
         <TabsContent value="prescriptions" className="pt-4">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Prescription History</h2>
-            <ButtonCustom onClick={() => setIsAddingPrescription(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Prescription
-            </ButtonCustom>
-          </div>
-
-          {isAddingPrescription ? (
-            <div className="mb-6">
-              <PatientPrescription 
-                patientId={patientId}
-                patientName={patientName}
-                onSave={handleNewPrescription}
-              />
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {prescriptions.length > 0 ? (
-                prescriptions.map((prescription) => (
-                  <Card key={prescription.id} className="overflow-hidden">
-                    <CardHeader className="bg-slate-50 pb-3">
-                      <div className="flex justify-between items-center">
-                        <CardTitle className="text-lg flex items-center">
-                          <FileText className="h-5 w-5 mr-2 text-primary" />
-                          Prescription
-                        </CardTitle>
-                        <p className="text-sm text-slate-500">{formatDate(prescription.date)}</p>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <p className="text-sm font-medium">Symptoms</p>
-                          <p className="text-sm">{prescription.symptoms}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">Diagnosis</p>
-                          <p className="text-sm">{prescription.diagnosis}</p>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3">
-                        <h4 className="text-sm font-medium border-b pb-1">Medications</h4>
-                        <div className="grid grid-cols-1 gap-2">
-                          {prescription.medications.map((medication, index) => (
-                            <div key={index} className="text-sm border-b pb-2 last:border-b-0">
-                              <div className="font-medium">{medication.name}</div>
-                              <div className="text-slate-600">
-                                {medication.dosage}, {medication.frequency}, for {medication.duration}
-                              </div>
-                              {medication.instructions && (
-                                <div className="text-slate-500">{medication.instructions}</div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {prescription.tests.length > 0 && (
-                        <div className="space-y-3 mt-4">
-                          <h4 className="text-sm font-medium border-b pb-1">Recommended Tests</h4>
-                          <div className="grid grid-cols-1 gap-2">
-                            {prescription.tests.map((test, index) => (
-                              <div key={index} className="text-sm border-b pb-2 last:border-b-0">
-                                <div className="font-medium">{test.name}</div>
-                                {test.instructions && (
-                                  <div className="text-slate-500">{test.instructions}</div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <div className="text-center py-8 bg-slate-50 rounded-lg">
-                  <FilePlus className="h-12 w-12 mx-auto text-slate-300 mb-2" />
-                  <h3 className="text-lg font-medium mb-1">No Prescriptions Yet</h3>
-                  <p className="text-slate-600">
-                    Create a new prescription for the patient.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
+          <PatientPrescriptionManager 
+            patientId={patientId}
+            patientName={patientName}
+            prescriptions={localPrescriptions}
+            onAddPrescription={handleNewPrescription}
+          />
         </TabsContent>
 
         <TabsContent value="vitals" className="pt-4">

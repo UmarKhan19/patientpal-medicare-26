@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Dashboard from "./Dashboard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,15 +9,19 @@ import { Calendar, User, FileText, MessageSquare, TestTube, Pill, ClipboardList,
 import { findPatientById, getPatientAppointments, getPatientPrescriptions, getPatientTests } from "@/lib/dummy-data";
 import { formatDate } from "@/lib/utils";
 import { toast } from "@/components/ui/use-toast";
+import PatientPrescriptionManager from "@/components/doctor/PatientPrescriptionManager";
+import { useAuth } from "@/contexts/AuthContext";
 
 const PatientProfile = () => {
   const { patientId } = useParams<{ patientId: string }>();
   const [activeTab, setActiveTab] = useState("profile");
+  const { user } = useAuth();
+  
+  const isDoctor = user?.role === "doctor";
 
-  // Fetch patient data (replace with actual data fetching logic)
   const patient = findPatientById(patientId || "p1");
   const appointments = getPatientAppointments(patientId || "p1");
-  const prescriptions = getPatientPrescriptions(patientId || "p1");
+  const [prescriptions, setPrescriptions] = useState(getPatientPrescriptions(patientId || "p1"));
   const tests = getPatientTests(patientId || "p1");
 
   const copyBlockchainId = () => {
@@ -28,6 +32,10 @@ const PatientProfile = () => {
         description: "Your blockchain ID has been copied to clipboard",
       });
     }
+  };
+
+  const handleAddPrescription = (newPrescription: any) => {
+    setPrescriptions([newPrescription, ...prescriptions]);
   };
 
   if (!patient) {
@@ -205,34 +213,45 @@ const PatientProfile = () => {
         </TabsContent>
 
         <TabsContent value="prescriptions" className="animate-fade-in">
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Prescriptions</CardTitle>
-                <ButtonCustom variant="outline">Add Prescription</ButtonCustom>
-              </div>
-              <CardDescription>Manage patient prescriptions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {prescriptions.map((prescription) => (
-                  <div key={prescription.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                    <div>
-                      <p className="font-medium">{prescription.medication} ({prescription.dosage})</p>
-                      <p className="text-sm text-slate-600">Instructions: {prescription.instructions}</p>
-                      <p className="text-xs text-slate-500">Prescribed by {prescription.doctor} on {formatDate(prescription.issued)}</p>
+          {isDoctor ? (
+            <PatientPrescriptionManager 
+              patientId={patient.id}
+              patientName={patient.name}
+              prescriptions={prescriptions}
+              onAddPrescription={handleAddPrescription}
+            />
+          ) : (
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Prescriptions</CardTitle>
+                  {isDoctor && (
+                    <ButtonCustom variant="outline">Add Prescription</ButtonCustom>
+                  )}
+                </div>
+                <CardDescription>View your prescriptions</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {prescriptions.map((prescription) => (
+                    <div key={prescription.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                      <div>
+                        <p className="font-medium">{prescription.medication} ({prescription.dosage})</p>
+                        <p className="text-sm text-slate-600">Instructions: {prescription.instructions}</p>
+                        <p className="text-xs text-slate-500">Prescribed by {prescription.doctor} on {formatDate(prescription.issued)}</p>
+                      </div>
+                      <ButtonCustom variant="outline" size="sm">View Details</ButtonCustom>
                     </div>
-                    <ButtonCustom variant="outline" size="sm">View Details</ButtonCustom>
-                  </div>
-                ))}
-                {prescriptions.length === 0 && (
-                  <div className="flex justify-center items-center py-8 text-slate-400">
-                    <p>No prescriptions found for this patient</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                  {prescriptions.length === 0 && (
+                    <div className="flex justify-center items-center py-8 text-slate-400">
+                      <p>No prescriptions found for this patient</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="tests" className="animate-fade-in">
