@@ -16,9 +16,12 @@ const LabDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   
   const allTests = getLabTests();
+  
+  // Filter tests by status safely
   const pendingTests = allTests.filter(test => test.status === "Pending");
   const completedTests = allTests.filter(test => test.status === "Completed");
 
+  // Apply search filter
   const filteredTests = activeTab === "pending" 
     ? pendingTests.filter(test => 
         test.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -84,7 +87,8 @@ const LabDashboard = () => {
                         <div className="flex items-center mt-1">
                           <Clock className="h-4 w-4 mr-1 text-amber-500" />
                           <p className="text-sm text-amber-600">
-                            Requested on: {formatDate(test.requestDate)}
+                            {/* Safely display date with fallback */}
+                            Requested on: {test.requestDate ? formatDate(test.requestDate) : 'Date unavailable'}
                           </p>
                         </div>
                       </div>
@@ -130,7 +134,8 @@ const LabDashboard = () => {
                         <div className="flex items-center mt-1">
                           <Check className="h-4 w-4 mr-1 text-green-500" />
                           <p className="text-sm text-green-600">
-                            Completed on: {formatDate(test.completionDate)}
+                            {/* Safely display date with fallback */}
+                            Completed on: {test.completionDate ? formatDate(test.completionDate) : 'Date unavailable'}
                           </p>
                         </div>
                       </div>

@@ -5,13 +5,20 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatDate(date: Date | string): string {
-  const dateObj = date instanceof Date ? date : new Date(date);
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(dateObj);
+export function formatDate(date: Date | string | null | undefined): string {
+  if (!date) return 'Date unavailable';
+  
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    }).format(dateObj);
+  } catch (error) {
+    console.error('Invalid date value:', date, error);
+    return 'Invalid date';
+  }
 }
 
 export function formatDateTime(date: Date): string {
