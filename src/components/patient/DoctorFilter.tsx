@@ -48,7 +48,7 @@ const DoctorFilter = ({ onFilterChange }: DoctorFilterProps) => {
     
     setActiveFilters(newActiveFilters);
     
-    // Notify parent component
+    // Notify parent component with the updated filters
     onFilterChange({
       specialty,
       gender,
@@ -56,14 +56,16 @@ const DoctorFilter = ({ onFilterChange }: DoctorFilterProps) => {
       rating
     });
     
-    // Show toast if filters are applied
-    if (newActiveFilters.length > 0 && newActiveFilters.length !== activeFilters.length) {
+    // Show toast if filters are applied or changed
+    if (newActiveFilters.length > 0 && JSON.stringify(newActiveFilters) !== JSON.stringify(activeFilters)) {
       toast.success("Filters applied successfully");
     }
-  }, [specialty, gender, priceRange, rating, onFilterChange, activeFilters.length]);
+  }, [specialty, gender, priceRange, rating, onFilterChange, activeFilters]);
 
   const handlePriceChange = (value: number[]) => {
-    setPriceRange([value[0], value[1]]);
+    if (value.length >= 2) {
+      setPriceRange([value[0], value[1]]);
+    }
   };
 
   const clearFilters = () => {

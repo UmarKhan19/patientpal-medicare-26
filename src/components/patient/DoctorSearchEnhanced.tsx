@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -68,6 +69,7 @@ const DoctorSearchEnhanced = ({ onTabChange }: { onTabChange?: (tab: string) => 
     },
   });
 
+  // Update search results based on searchTerm
   useEffect(() => {
     let results = [...doctors];
     
@@ -97,6 +99,7 @@ const DoctorSearchEnhanced = ({ onTabChange }: { onTabChange?: (tab: string) => 
     setSearchResults(results);
   }, [searchTerm]);
 
+  // Apply filters to search results
   useEffect(() => {
     let filtered = [...searchResults];
     
@@ -112,11 +115,15 @@ const DoctorSearchEnhanced = ({ onTabChange }: { onTabChange?: (tab: string) => 
       );
     }
     
-    filtered = filtered.filter(doctor => {
-      const fee = doctor.consultationFee || 100;
-      return fee >= filterOptions.priceRange[0] && fee <= filterOptions.priceRange[1];
-    });
+    // Filter by price range
+    if (filterOptions.priceRange && filterOptions.priceRange.length === 2) {
+      filtered = filtered.filter(doctor => {
+        const fee = doctor.consultationFee || 100;
+        return fee >= filterOptions.priceRange[0] && fee <= filterOptions.priceRange[1];
+      });
+    }
     
+    // Filter by rating
     if (filterOptions.rating) {
       filtered = filtered.filter(doctor => 
         (doctor.rating || 0) >= (filterOptions.rating || 0)
@@ -128,9 +135,11 @@ const DoctorSearchEnhanced = ({ onTabChange }: { onTabChange?: (tab: string) => 
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    // The search is already handled by the useEffect hook
   };
 
   const handleFilterChange = (filters: FilterOptions) => {
+    console.log("Filter changed:", filters);
     setFilterOptions(filters);
   };
 
