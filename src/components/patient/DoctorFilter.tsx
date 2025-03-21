@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Check, ChevronsUpDown, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
@@ -36,20 +36,48 @@ const DoctorFilter = ({ onFilterChange }: DoctorFilterProps) => {
   const [priceRange, setPriceRange] = useState<[number, number]>([minPrice, maxPrice]);
   const [rating, setRating] = useState<number | null>(null);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
-  const [prevActiveFilters, setPrevActiveFilters] = useState<string[]>([]);
+  
+  // Use a ref to track previous filter state to avoid infinite loops
+  const prevFiltersRef = useRef({
+    specialty,
+    gender,
+    priceRange,
+    rating
+  });
 
-  // Memoize the update of active filters to prevent infinite loops
-  const updateActiveFilters = useCallback(() => {
-    const newActiveFilters: string[] = [];
-    if (specialty) newActiveFilters.push(`Specialty: ${specialty}`);
-    if (gender) newActiveFilters.push(`Gender: ${gender}`);
-    if (priceRange[0] > minPrice || priceRange[1] < maxPrice) 
-      newActiveFilters.push(`Price: ${formatPrice(priceRange[0])} - ${formatPrice(priceRange[1])}`);
-    if (rating) newActiveFilters.push(`Min Rating: ${rating}★`);
+  // Update filters and notify parent component
+  useEffect(() => {
+    // Only update if filters have changed to prevent infinite loops
+    const currentFilters = {
+      specialty,
+      gender,
+      priceRange,
+      rating
+    };
     
-    if (JSON.stringify(newActiveFilters) !== JSON.stringify(prevActiveFilters)) {
+    // Check if filters have actually changed
+    const prevFilters = prevFiltersRef.current;
+    const hasChanged = 
+      prevFilters.specialty !== currentFilters.specialty ||
+      prevFilters.gender !== currentFilters.gender ||
+      prevFilters.priceRange[0] !== currentFilters.priceRange[0] ||
+      prevFilters.priceRange[1] !== currentFilters.priceRange[1] ||
+      prevFilters.rating !== currentFilters.rating;
+    
+    if (hasChanged) {
+      // Update the previous filters ref
+      prevFiltersRef.current = { ...currentFilters };
+      
+      // Create new active filters array
+      const newActiveFilters: string[] = [];
+      if (specialty) newActiveFilters.push(`Specialty: ${specialty}`);
+      if (gender) newActiveFilters.push(`Gender: ${gender}`);
+      if (priceRange[0] > minPrice || priceRange[1] < maxPrice) 
+        newActiveFilters.push(`Price: ${formatPrice(priceRange[0])} - ${formatPrice(priceRange[1])}`);
+      if (rating) newActiveFilters.push(`Min Rating: ${rating}★`);
+      
+      // Update active filters state
       setActiveFilters(newActiveFilters);
-      setPrevActiveFilters(newActiveFilters);
       
       // Notify parent component with the updated filters
       onFilterChange({
@@ -59,17 +87,12 @@ const DoctorFilter = ({ onFilterChange }: DoctorFilterProps) => {
         rating
       });
       
-      // Show toast if filters are applied or changed
+      // Show toast if filters are applied
       if (newActiveFilters.length > 0) {
         toast.success("Filters applied successfully");
       }
     }
-  }, [specialty, gender, priceRange, rating, onFilterChange, prevActiveFilters]);
-
-  // Use useEffect with proper dependencies
-  useEffect(() => {
-    updateActiveFilters();
-  }, [updateActiveFilters]);
+  }, [specialty, gender, priceRange, rating, onFilterChange]);
 
   const handlePriceChange = (value: number[]) => {
     if (value.length >= 2) {
