@@ -1,0 +1,23 @@
+
+type MedicalTest = record {
+  "id" : text;
+  "patientId" : text;
+  "doctorId" : text;
+  "name" : text;
+  "date" : text;
+  "result" : opt text;
+  "status" : text;
+  "recommendations" : opt text;
+  "createdAt" : nat64;
+  "updatedAt" : nat64;
+};
+
+service : {
+  "createTest" : (MedicalTest) -> (text);
+  "getTest" : (text) -> (opt MedicalTest) query;
+  "updateTest" : (MedicalTest) -> (bool);
+  "deleteTest" : (text) -> (bool);
+  "getTestsByPatient" : (text) -> (vec MedicalTest) query;
+  "getTestsByDoctor" : (text) -> (vec MedicalTest) query;
+  "getTestsByStatus" : (text) -> (vec MedicalTest) query;
+}

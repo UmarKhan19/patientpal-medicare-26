@@ -1,0 +1,17 @@
+
+{
+  "canisters": {
+    "medical_tests_canister": {
+      "candid": "medical_tests_canister.did",
+      "package": "medical_tests_canister",
+      "type": "rust"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "version": 1
+}
