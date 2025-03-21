@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { ButtonCustom } from '@/components/ui/button-custom';
-import { Search, Calendar, UserCircle, CheckCircle, Stethoscope, Star } from 'lucide-react';
+import { Search, Calendar, UserCircle, CheckCircle, Stethoscope, Star, Info } from 'lucide-react';
 import { doctors } from '@/lib/dummy-data';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
@@ -247,10 +248,18 @@ const DoctorSearchEnhanced = ({ onTabChange }: { onTabChange?: (tab: string) => 
               <p className="font-medium text-lg text-primary">
                 {formatPrice(doctor.consultationFee || 100)}
               </p>
-              <ButtonCustom onClick={() => openBookingDialog(doctor)}>
-                <Calendar className="h-4 w-4 mr-2" /> 
-                Book Appointment
-              </ButtonCustom>
+              <div className="flex gap-2">
+                <Link to={`/patient/doctor/${doctor.id}`}>
+                  <ButtonCustom variant="outline" size="sm">
+                    <Info className="h-4 w-4 mr-2" /> 
+                    View Profile
+                  </ButtonCustom>
+                </Link>
+                <ButtonCustom onClick={() => openBookingDialog(doctor)}>
+                  <Calendar className="h-4 w-4 mr-2" /> 
+                  Book Appointment
+                </ButtonCustom>
+              </div>
             </div>
           </div>
         ))}
