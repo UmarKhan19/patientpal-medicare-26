@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
+import { toast } from "sonner";
 
 // Get unique specialties from dummy data
 const specialties = [...new Set(doctors.map(doctor => doctor.specialty))];
@@ -54,7 +55,12 @@ const DoctorFilter = ({ onFilterChange }: DoctorFilterProps) => {
       priceRange,
       rating
     });
-  }, [specialty, gender, priceRange, rating, onFilterChange]);
+    
+    // Show toast if filters are applied
+    if (newActiveFilters.length > 0 && newActiveFilters.length !== activeFilters.length) {
+      toast.success("Filters applied successfully");
+    }
+  }, [specialty, gender, priceRange, rating, onFilterChange, activeFilters.length]);
 
   const handlePriceChange = (value: number[]) => {
     setPriceRange([value[0], value[1]]);
@@ -65,6 +71,7 @@ const DoctorFilter = ({ onFilterChange }: DoctorFilterProps) => {
     setGender(null);
     setPriceRange([minPrice, maxPrice]);
     setRating(null);
+    toast.success("All filters cleared");
   };
 
   const removeFilter = (filter: string) => {
@@ -72,6 +79,7 @@ const DoctorFilter = ({ onFilterChange }: DoctorFilterProps) => {
     else if (filter.startsWith("Gender:")) setGender(null);
     else if (filter.startsWith("Price:")) setPriceRange([minPrice, maxPrice]);
     else if (filter.startsWith("Min Rating:")) setRating(null);
+    toast.success("Filter removed");
   };
 
   return (
@@ -98,7 +106,7 @@ const DoctorFilter = ({ onFilterChange }: DoctorFilterProps) => {
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="flex items-center justify-between"
+            className="flex items-center justify-between w-full md:w-auto"
           >
             <Filter className="h-4 w-4 mr-2" />
             Filter Doctors

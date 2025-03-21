@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { formatDate } from "@/lib/utils";
 import DoctorReviewForm from "@/components/patient/DoctorReviewForm";
+import { toast } from "sonner";
 
 interface Review {
   id: string;
@@ -52,6 +53,8 @@ const DoctorRatings = ({
         return review;
       })
     );
+    
+    toast.success("Thank you for your feedback");
   };
 
   const handleNewReview = (data: { rating: number; comment: string }) => {
@@ -68,6 +71,7 @@ const DoctorRatings = ({
     
     setReviewsList([newReview, ...reviewsList]);
     setShowForm(false);
+    toast.success("Your review has been submitted. Thank you!");
   };
 
   const renderStars = (rating: number) => {

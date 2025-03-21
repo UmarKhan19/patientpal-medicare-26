@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,6 +6,7 @@ import { ButtonCustom } from "@/components/ui/button-custom";
 import { Clipboard, FilePlus, FileText, Beaker, HeartPulse, History, Plus } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import PatientPrescription from "./PatientPrescription";
+import { toast } from "sonner";
 
 // Types
 interface MedicalTest {
@@ -61,6 +63,7 @@ const PatientMedicalHistory = ({
 }: PatientMedicalHistoryProps) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isAddingPrescription, setIsAddingPrescription] = useState(false);
+  const [showVitalForm, setShowVitalForm] = useState(false);
   
   const latestVitals = vitalRecords.length > 0 ? vitalRecords[0] : null;
   
@@ -68,6 +71,8 @@ const PatientMedicalHistory = ({
     console.log("New prescription data:", data);
     // In a real app, this would send the data to an API and update the prescriptions list
     setIsAddingPrescription(false);
+    // Mock update to show success
+    toast.success("Prescription added successfully");
   };
 
   return (
@@ -123,7 +128,19 @@ const PatientMedicalHistory = ({
                     </div>
                   </div>
                 ) : (
-                  <p className="text-slate-500">No vital records available.</p>
+                  <div className="flex flex-col items-center">
+                    <p className="text-slate-500 mb-3">No vital records available.</p>
+                    <ButtonCustom 
+                      onClick={() => {
+                        setActiveTab("vitals");
+                        setShowVitalForm(true);
+                      }}
+                      size="sm"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Vitals
+                    </ButtonCustom>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -163,7 +180,19 @@ const PatientMedicalHistory = ({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-slate-500">No recent activity.</p>
+                  <div className="text-center py-4">
+                    <p className="text-slate-500 mb-3">No recent activity.</p>
+                    <ButtonCustom 
+                      onClick={() => {
+                        setActiveTab("prescriptions");
+                        setIsAddingPrescription(true);
+                      }}
+                      size="sm"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Prescription
+                    </ButtonCustom>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -263,7 +292,13 @@ const PatientMedicalHistory = ({
 
         <TabsContent value="vitals" className="pt-4">
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Vital Records</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Vital Records</h2>
+              <ButtonCustom onClick={() => setShowVitalForm(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add New Vitals
+              </ButtonCustom>
+            </div>
             
             {vitalRecords.length > 0 ? (
               <div className="space-y-4">
@@ -329,7 +364,13 @@ const PatientMedicalHistory = ({
 
         <TabsContent value="tests" className="pt-4">
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Medical Tests</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Medical Tests</h2>
+              <ButtonCustom variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                Order New Test
+              </ButtonCustom>
+            </div>
             
             {medicalTests.length > 0 ? (
               <div className="space-y-4">
